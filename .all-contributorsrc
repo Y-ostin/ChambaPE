@@ -1,9 +1,7 @@
 {
   "projectName": "nestjs-boilerplate",
   "projectOwner": "brocoders",
-  "files": [
-    "README.md"
-  ],
+  "files": ["README.md"],
   "commitType": "docs",
   "commitConvention": "angular",
   "contributorsPerLine": 7,
@@ -13,38 +11,28 @@
       "name": "Vladyslav Shchepotin",
       "avatar_url": "https://avatars.githubusercontent.com/u/6001723?v=4",
       "profile": "https://github.com/Shchepotin",
-      "contributions": [
-        "maintenance",
-        "doc",
-        "code"
-      ]
+      "contributions": ["maintenance", "doc", "code"]
     },
     {
       "login": "SergeiLomako",
       "name": "SergeiLomako",
       "avatar_url": "https://avatars.githubusercontent.com/u/31205374?v=4",
       "profile": "https://github.com/SergeiLomako",
-      "contributions": [
-        "code"
-      ]
+      "contributions": ["code"]
     },
     {
       "login": "ElenVlass",
       "name": "Elena Vlasenko",
       "avatar_url": "https://avatars.githubusercontent.com/u/72293912?v=4",
       "profile": "https://github.com/ElenVlass",
-      "contributions": [
-        "doc"
-      ]
+      "contributions": ["doc"]
     },
     {
       "login": "sars",
       "name": "Rodion",
       "avatar_url": "https://avatars.githubusercontent.com/u/226194?v=4",
       "profile": "http://brocoders.com",
-      "contributions": [
-        "business"
-      ]
+      "contributions": ["business"]
     }
   ]
 }
