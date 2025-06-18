@@ -46,6 +46,7 @@ import { unnamedsModule } from './unnameds/unnameds.module';
 import { WorkersModule } from './workers/workers.module';
 import { ServicesModule } from './services/services.module';
 import { JobsModule } from './jobs/jobs.module';
+import { MatchingModule } from './matching/matching.module';
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { JobsModule } from './jobs/jobs.module';
     WorkersModule,
     ServicesModule,
     JobsModule,
+    MatchingModule,
   ],
 })
 export class AppModule {}
