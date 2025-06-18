@@ -88,9 +88,6 @@ export class WorkersService {
 
   async findNearby(findNearbyDto: FindNearbyWorkersDto): Promise<WorkerDto[]> {
     const {
-      latitude,
-      longitude,
-      radiusKm = 10,
       // serviceCategoryId, // TODO: Implementar filtro por categoría cuando se agregue la relación
       verifiedOnly,
       activeToday,
