@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Put,
   Param,
   Delete,
   Query,
@@ -27,6 +28,9 @@ import { CreateWorkerDto } from './dto/create-worker.dto';
 import { UpdateWorkerDto } from './dto/update-worker.dto';
 import { FindNearbyWorkersDto } from './dto/find-nearby-workers.dto';
 import { WorkerDto } from './dto/worker.dto';
+import { ManageWorkerServicesDto } from './dto/manage-worker-services.dto';
+import { ServiceCategoryDto } from '../services/dto/service-category.dto';
+import { ServiceCategoryEntity } from '../services/infrastructure/persistence/relational/entities/service-category.entity';
 
 @ApiTags('Workers')
 @Controller({
@@ -181,5 +185,83 @@ export class WorkersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string): Promise<void> {
     return this.workersService.remove(+id);
+  }
+
+  @Post('me/services')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(RoleEnum.user)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Agregar servicios a mi perfil de trabajador' })
+  @ApiResponse({
+    status: 200,
+    description: 'Servicios agregados exitosamente',
+    type: WorkerDto,
+  })
+  async addMyServices(
+    @Request() req,
+    @Body() manageServicesDto: ManageWorkerServicesDto,
+  ): Promise<WorkerDto> {
+    const workerProfile = await this.workersService.findByUserId(req.user.id);
+    return this.workersService.addWorkerServices(
+      workerProfile.id,
+      manageServicesDto,
+    );
+  }
+
+  @Put('me/services')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(RoleEnum.user)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Actualizar servicios de mi perfil de trabajador' })
+  @ApiResponse({
+    status: 200,
+    description: 'Servicios actualizados exitosamente',
+    type: WorkerDto,
+  })
+  async updateMyServices(
+    @Request() req,
+    @Body() manageServicesDto: ManageWorkerServicesDto,
+  ): Promise<WorkerDto> {
+    const workerProfile = await this.workersService.findByUserId(req.user.id);
+    return this.workersService.updateWorkerServices(
+      workerProfile.id,
+      manageServicesDto,
+    );
+  }
+
+  @Delete('me/services')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(RoleEnum.user)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remover servicios de mi perfil de trabajador' })
+  @ApiResponse({
+    status: 200,
+    description: 'Servicios removidos exitosamente',
+    type: WorkerDto,
+  })
+  async removeMyServices(
+    @Request() req,
+    @Body() manageServicesDto: ManageWorkerServicesDto,
+  ): Promise<WorkerDto> {
+    const workerProfile = await this.workersService.findByUserId(req.user.id);
+    return this.workersService.removeWorkerServices(
+      workerProfile.id,
+      manageServicesDto,
+    );
+  }
+
+  @Get('me/services')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(RoleEnum.user)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener mis servicios como trabajador' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de servicios del trabajador',
+    type: [ServiceCategoryDto],
+  })
+  async getMyServices(@Request() req): Promise<ServiceCategoryEntity[]> {
+    const workerProfile = await this.workersService.findByUserId(req.user.id);
+    return this.workersService.getWorkerServices(workerProfile.id);
   }
 }

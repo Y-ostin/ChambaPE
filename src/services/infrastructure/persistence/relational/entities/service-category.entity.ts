@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { WorkerProfileEntity } from '../../../../../users/infrastructure/persistence/relational/entities/worker-profile.entity';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
 
 @Entity({
@@ -25,6 +27,9 @@ export class ServiceCategoryEntity extends EntityRelationalHelper {
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
+
+  @ManyToMany(() => WorkerProfileEntity, (worker) => worker.serviceCategories)
+  workers: WorkerProfileEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

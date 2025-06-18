@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { User } from '../../users/domain/user';
+import { ServiceCategoryDto } from '../../services/dto/service-category.dto';
 
 export class WorkerDto {
   @ApiProperty({
@@ -72,6 +73,14 @@ export class WorkerDto {
     required: false,
   })
   certificatesUrls?: string[];
+
+  @ApiProperty({
+    description: 'Categorías de servicios que ofrece el trabajador',
+    type: [ServiceCategoryDto],
+    required: false,
+  })
+  @Type(() => ServiceCategoryDto)
+  serviceCategories?: ServiceCategoryDto[];
 
   @ApiProperty({
     description: 'Distancia en kilómetros (solo en búsquedas geográficas)',

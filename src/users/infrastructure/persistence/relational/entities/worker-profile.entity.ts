@@ -3,12 +3,15 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
 } from 'typeorm';
 import { UserEntity } from './user.entity';
+import { ServiceCategoryEntity } from '../../../../../services/infrastructure/persistence/relational/entities/service-category.entity';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
 
 export enum WorkerSubscriptionStatus {
@@ -71,6 +74,20 @@ export class WorkerProfileEntity extends EntityRelationalHelper {
 
   @Column({ type: 'text', nullable: true })
   description: string | null;
+
+  @ManyToMany(() => ServiceCategoryEntity)
+  @JoinTable({
+    name: 'worker_service_categories',
+    joinColumn: {
+      name: 'worker_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'service_category_id',
+      referencedColumnName: 'id',
+    },
+  })
+  serviceCategories: ServiceCategoryEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

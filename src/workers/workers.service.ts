@@ -12,6 +12,7 @@ import { ServiceCategoryEntity } from '../services/infrastructure/persistence/re
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { UpdateWorkerDto } from './dto/update-worker.dto';
 import { FindNearbyWorkersDto } from './dto/find-nearby-workers.dto';
+import { ManageWorkerServicesDto } from './dto/manage-worker-services.dto';
 import { WorkerDto } from './dto/worker.dto';
 import { RoleEnum } from '../roles/roles.enum';
 
@@ -164,7 +165,7 @@ export class WorkersService {
   async findByUserId(userId: number): Promise<WorkerDto> {
     const worker = await this.workerProfileRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['user', 'user.role', 'user.userProfile'],
+      relations: ['user', 'user.role', 'user.userProfile', 'serviceCategories'],
     });
 
     if (!worker) {
@@ -177,7 +178,7 @@ export class WorkersService {
   async findOne(id: number): Promise<WorkerDto> {
     const worker = await this.workerProfileRepository.findOne({
       where: { id },
-      relations: ['user', 'user.role', 'user.userProfile'],
+      relations: ['user', 'user.role', 'user.userProfile', 'serviceCategories'],
     });
 
     if (!worker) {
@@ -189,7 +190,7 @@ export class WorkersService {
 
   async findAll(): Promise<WorkerDto[]> {
     const workers = await this.workerProfileRepository.find({
-      relations: ['user', 'user.role', 'user.userProfile'],
+      relations: ['user', 'user.role', 'user.userProfile', 'serviceCategories'],
       order: { createdAt: 'DESC' },
     });
 
@@ -208,7 +209,16 @@ export class WorkersService {
       throw new NotFoundException('Perfil de trabajador no encontrado');
     }
 
-    await this.workerProfileRepository.update(worker.id, updateWorkerDto);
+    // Separar las categorías de servicios del resto de datos
+    const { serviceCategories, ...updateData } = updateWorkerDto;
+
+    // Actualizar datos básicos del trabajador
+    await this.workerProfileRepository.update(worker.id, updateData);
+
+    // Si se especificaron categorías de servicios, actualizarlas por separado
+    if (serviceCategories && serviceCategories.length > 0) {
+      await this.updateWorkerServices(worker.id, { serviceCategoryIds: serviceCategories });
+    }
 
     return this.findByUserId(userId);
   }
@@ -263,6 +273,109 @@ export class WorkersService {
     await this.workerProfileRepository.delete(id);
   }
 
+  async addWorkerServices(
+    workerId: number,
+    manageServicesDto: ManageWorkerServicesDto,
+  ): Promise<WorkerDto> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { id: workerId },
+      relations: ['serviceCategories', 'user'],
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Trabajador no encontrado');
+    }
+
+    // Verificar que las categorías existen
+    const categories = await this.serviceCategoryRepository.find({
+      where: { id: In(manageServicesDto.serviceCategoryIds) },
+    });
+
+    if (categories.length !== manageServicesDto.serviceCategoryIds.length) {
+      throw new BadRequestException(
+        'Una o más categorías de servicio no existen',
+      );
+    }
+
+    // Agregar nuevas categorías (evitar duplicados)
+    const existingCategoryIds = worker.serviceCategories.map((cat) => cat.id);
+    const newCategories = categories.filter(
+      (cat) => !existingCategoryIds.includes(cat.id),
+    );
+
+    worker.serviceCategories.push(...newCategories);
+    await this.workerProfileRepository.save(worker);
+
+    return this.mapToDto(worker);
+  }
+
+  async updateWorkerServices(
+    workerId: number,
+    manageServicesDto: ManageWorkerServicesDto,
+  ): Promise<WorkerDto> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { id: workerId },
+      relations: ['serviceCategories', 'user'],
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Trabajador no encontrado');
+    }
+
+    // Verificar que las categorías existen
+    const categories = await this.serviceCategoryRepository.find({
+      where: { id: In(manageServicesDto.serviceCategoryIds) },
+    });
+
+    if (categories.length !== manageServicesDto.serviceCategoryIds.length) {
+      throw new BadRequestException(
+        'Una o más categorías de servicio no existen',
+      );
+    }
+
+    // Reemplazar todas las categorías
+    worker.serviceCategories = categories;
+    await this.workerProfileRepository.save(worker);
+
+    return this.mapToDto(worker);
+  }
+
+  async removeWorkerServices(
+    workerId: number,
+    manageServicesDto: ManageWorkerServicesDto,
+  ): Promise<WorkerDto> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { id: workerId },
+      relations: ['serviceCategories', 'user'],
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Trabajador no encontrado');
+    }
+
+    // Remover las categorías especificadas
+    worker.serviceCategories = worker.serviceCategories.filter(
+      (cat) => !manageServicesDto.serviceCategoryIds.includes(cat.id),
+    );
+
+    await this.workerProfileRepository.save(worker);
+
+    return this.mapToDto(worker);
+  }
+
+  async getWorkerServices(workerId: number): Promise<ServiceCategoryEntity[]> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { id: workerId },
+      relations: ['serviceCategories'],
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Trabajador no encontrado');
+    }
+
+    return worker.serviceCategories;
+  }
+
   private mapToDto(worker: WorkerProfileEntity): WorkerDto {
     return {
       id: worker.id,
@@ -276,6 +389,15 @@ export class WorkersService {
       monthlySubscriptionStatus: worker.monthlySubscriptionStatus,
       subscriptionExpiresAt: worker.subscriptionExpiresAt || undefined,
       certificatesUrls: worker.certificatesUrls,
+      serviceCategories: worker.serviceCategories?.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        description: cat.description || undefined,
+        iconUrl: cat.iconUrl || undefined,
+        isActive: cat.isActive,
+        createdAt: cat.createdAt,
+        updatedAt: cat.updatedAt,
+      })),
       createdAt: worker.createdAt,
       updatedAt: worker.updatedAt,
     };
