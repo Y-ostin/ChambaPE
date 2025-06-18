@@ -35,7 +35,7 @@ export class MatchingController {
 
   @Get('worker/:workerId/jobs')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(RoleEnum.user, RoleEnum.admin)
+  @Roles(RoleEnum.user, RoleEnum.admin, RoleEnum.worker)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar trabajos compatibles para un trabajador' })
   @ApiParam({
@@ -58,7 +58,7 @@ export class MatchingController {
 
   @Get('job/:jobId/workers')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(RoleEnum.user, RoleEnum.admin)
+  @Roles(RoleEnum.user, RoleEnum.admin, RoleEnum.worker)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar trabajadores compatibles para un trabajo' })
   @ApiParam({
@@ -81,7 +81,7 @@ export class MatchingController {
 
   @Get('my-matches')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(RoleEnum.user)
+  @Roles(RoleEnum.worker)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Obtener trabajos compatibles para el trabajador actual',

@@ -2,7 +2,6 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateJobMatchTable1750223950000 implements MigrationInterface {
   name = 'CreateJobMatchTable1750223950000';
-  
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Crear tabla job_match solo si no existe (compatible con la entidad actual)
     await queryRunner.query(`
@@ -20,19 +19,6 @@ export class CreateJobMatchTable1750223950000 implements MigrationInterface {
         "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "PK_job_match" PRIMARY KEY ("id")
       )
-    `);
-
-    // Crear índice único para evitar duplicados job-worker (solo si no existe)
-    await queryRunner.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM pg_indexes 
-          WHERE indexname = 'IDX_job_worker_unique'
-        ) THEN
-          CREATE UNIQUE INDEX "IDX_job_worker_unique" ON "job_match" ("job_id", "worker_id");
-        END IF;
-      END$$
     `);
 
     // Crear foreign keys (solo si no existen)
@@ -58,6 +44,19 @@ export class CreateJobMatchTable1750223950000 implements MigrationInterface {
         ) THEN
           ALTER TABLE "job_match" ADD CONSTRAINT "FK_job_match_worker" 
           FOREIGN KEY ("worker_id") REFERENCES "user"("id") ON DELETE CASCADE;
+        END IF;
+      END$$
+    `);
+
+    // Crear índice único para evitar duplicados job-worker (solo si no existe)
+    await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_indexes 
+          WHERE indexname = 'IDX_job_worker_unique'
+        ) THEN
+          CREATE UNIQUE INDEX "IDX_job_worker_unique" ON "job_match" ("job_id", "worker_id");
         END IF;
       END$$
     `);

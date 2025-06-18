@@ -1,0 +1,9 @@
+{
+  "skills": ["Limpieza", "Plomeria"],
+  "experience": "2 años de experiencia",
+  "location": {
+    "latitude": -12.0464,
+    "longitude": -77.0428
+  },
+  "serviceCategories": [1, 2]
+}

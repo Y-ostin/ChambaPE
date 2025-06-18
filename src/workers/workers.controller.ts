@@ -189,7 +189,7 @@ export class WorkersController {
 
   @Post('me/services')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(RoleEnum.user)
+  @Roles(RoleEnum.user, RoleEnum.worker)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Agregar servicios a mi perfil de trabajador' })
   @ApiResponse({
@@ -210,7 +210,7 @@ export class WorkersController {
 
   @Put('me/services')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(RoleEnum.user)
+  @Roles(RoleEnum.user, RoleEnum.worker)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Actualizar servicios de mi perfil de trabajador' })
   @ApiResponse({
@@ -231,7 +231,7 @@ export class WorkersController {
 
   @Delete('me/services')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(RoleEnum.user)
+  @Roles(RoleEnum.user, RoleEnum.worker)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remover servicios de mi perfil de trabajador' })
   @ApiResponse({
@@ -252,7 +252,7 @@ export class WorkersController {
 
   @Get('me/services')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(RoleEnum.user)
+  @Roles(RoleEnum.user, RoleEnum.worker)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener mis servicios como trabajador' })
   @ApiResponse({

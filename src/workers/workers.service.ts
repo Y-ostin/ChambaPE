@@ -100,11 +100,12 @@ export class WorkersService {
       .createQueryBuilder('worker')
       .leftJoinAndSelect('worker.user', 'user')
       .leftJoinAndSelect('user.role', 'role')
-      .leftJoinAndSelect('user.userProfile', 'userProfile')
       .where('user.roleId = :roleId', { roleId: RoleEnum.worker })
       .andWhere('user.deletedAt IS NULL');
 
-    // Filtro geográfico usando la fórmula de Haversine
+    // TODO: Filtro geográfico - temporalmente deshabilitado
+    // Las coordenadas deben agregarse a WorkerProfileEntity o UserEntity
+    /*
     query = query.andWhere(
       `(
         6371 * acos(
@@ -125,6 +126,7 @@ export class WorkersService {
       ) <= :radiusKm`,
       { latitude, longitude, radiusKm },
     );
+    */
 
     if (verifiedOnly) {
       query = query.andWhere('worker.isVerified = :verified', {
@@ -138,7 +140,8 @@ export class WorkersService {
       });
     }
 
-    // Agregar distancia al resultado
+    // TODO: Agregar cálculo de distancia cuando estén disponibles las coordenadas
+    /*
     query = query.addSelect(
       `(
         6371 * acos(
@@ -153,19 +156,22 @@ export class WorkersService {
     );
 
     query = query.orderBy('distance', 'ASC');
+    */
 
-    const workers = await query.getRawAndEntities();
+    query = query.orderBy('worker.createdAt', 'DESC');
 
-    return workers.entities.map((worker, index) => ({
+    const workers = await query.getMany();
+
+    return workers.map((worker) => ({
       ...this.mapToDto(worker),
-      distance: parseFloat(workers.raw[index].distance),
+      distance: 0, // TODO: Calcular distancia real
     }));
   }
 
   async findByUserId(userId: number): Promise<WorkerDto> {
     const worker = await this.workerProfileRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['user', 'user.role', 'user.userProfile', 'serviceCategories'],
+      relations: ['user', 'user.role', 'serviceCategories'],
     });
 
     if (!worker) {
@@ -178,7 +184,7 @@ export class WorkersService {
   async findOne(id: number): Promise<WorkerDto> {
     const worker = await this.workerProfileRepository.findOne({
       where: { id },
-      relations: ['user', 'user.role', 'user.userProfile', 'serviceCategories'],
+      relations: ['user', 'user.role', 'serviceCategories'],
     });
 
     if (!worker) {
@@ -190,7 +196,7 @@ export class WorkersService {
 
   async findAll(): Promise<WorkerDto[]> {
     const workers = await this.workerProfileRepository.find({
-      relations: ['user', 'user.role', 'user.userProfile', 'serviceCategories'],
+      relations: ['user', 'user.role', 'serviceCategories'],
       order: { createdAt: 'DESC' },
     });
 

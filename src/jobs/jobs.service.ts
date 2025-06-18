@@ -146,13 +146,7 @@ export class JobsService {
   async findOne(id: number): Promise<JobDto> {
     const job = await this.jobRepository.findOne({
       where: { id },
-      relations: [
-        'user',
-        'user.userProfile',
-        'worker',
-        'worker.userProfile',
-        'serviceCategory',
-      ],
+      relations: ['user', 'worker', 'serviceCategory'],
     });
 
     if (!job) {
@@ -178,8 +172,6 @@ export class JobsService {
       .leftJoinAndSelect('job.user', 'user')
       .leftJoinAndSelect('job.worker', 'worker')
       .leftJoinAndSelect('job.serviceCategory', 'serviceCategory')
-      .leftJoinAndSelect('user.userProfile', 'userProfile')
-      .leftJoinAndSelect('worker.userProfile', 'workerProfile')
       .where('job.userId = :userId', { userId });
 
     if (status) {

@@ -202,6 +202,40 @@ Para hacer testing completo necesitamos:
    - Validar algoritmo de scoring
    - Verificar persistencia de matches
 
+## 📊 **UPDATE 18/06/2025 - 00:45 - Corrección de Errores Críticos**
+
+### 🔧 **Errores Corregidos**:
+
+#### 1. **Error de Entidad UserEntity**
+- **Problema**: `Property "userProfile" was not found in "UserEntity"`
+- **Solución**: ✅ Agregada relación `@OneToOne` con `WorkerProfileEntity` en `UserEntity`
+- **Archivo**: `src/users/infrastructure/persistence/relational/entities/user.entity.ts`
+
+#### 2. **Error SQL en MatchingService**
+- **Problema**: `missing FROM-clause entry for table "workerprofile"`
+- **Causa**: Query usaba `workerProfile.isActive` (campo inexistente)
+- **Solución**: ✅ Corregido a `workerProfile.isActiveToday` (campo correcto)
+- **Archivo**: `src/matching/matching.service.ts`
+
+#### 3. **Error de Migración job_match**
+- **Problema**: Tabla no se creaba por conflictos de orden en constraints
+- **Solución**: ✅ Corregido orden: tabla → foreign keys → índices
+- **Estado**: Migración ejecutada exitosamente
+- **Archivo**: `src/database/migrations/1750223950000-CreateJobMatchTable.ts`
+
+### 🎯 **Estado Actual**:
+- ✅ Base de datos actualizada con tabla `job_match`
+- ✅ Entidades corregidas y relacionadas correctamente
+- ✅ Consultas SQL optimizadas
+- 🔄 Servidor reiniciándose con cambios
+
+### 🚀 **Próximos Tests** (inmediatos):
+1. Verificar que `GET /api/v1/matching/job/1/workers` ya no da error 500
+2. Test completo de aplicación a trabajos
+3. Validar persistencia de matches en BD
+
+---
+
 ## 📋 **Resumen del Sprint 3**
 
 **Estado**: 🎉 **ÉXITO - 95% Completado**

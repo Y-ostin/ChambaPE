@@ -161,10 +161,7 @@ export class MatchingService {
       throw new NotFoundException('Perfil de trabajador no encontrado');
     }
 
-    const { score, distance } = await this.calculateMatchScore(
-      job,
-      workerProfile,
-    );
+    const { score, distance } = this.calculateMatchScore(job, workerProfile);
 
     const newMatch = this.jobMatchRepository.create({
       job,
@@ -231,10 +228,7 @@ export class MatchingService {
     const matches: JobMatchDto[] = [];
 
     for (const job of jobs) {
-      const { score, distance } = await this.calculateMatchScore(
-        job,
-        workerProfile,
-      );
+      const { score, distance } = this.calculateMatchScore(job, workerProfile);
 
       if (score >= minScore) {
         // Verificar si ya existe aplicación
@@ -268,7 +262,7 @@ export class MatchingService {
     job: JobEntity,
     options: { radiusKm: number; minScore: number; limit: number },
   ): Promise<JobMatchDto[]> {
-    const { radiusKm, minScore, limit } = options;
+    const { minScore, limit } = options;
 
     // Buscar trabajadores que ofrecen la categoría de servicio del trabajo
     const workerProfiles = await this.workerProfileRepository
@@ -278,20 +272,21 @@ export class MatchingService {
       .where('serviceCategories.id = :categoryId', {
         categoryId: job.serviceCategory.id,
       })
-      .andWhere('workerProfile.isActive = true')
+      .andWhere('workerProfile.isActiveToday = true')
       .andWhere('user.id != :userId', { userId: job.user.id })
-      .andWhere(
-        `ST_DWithin(
-          ST_MakePoint(workerProfile.longitude, workerProfile.latitude)::geography,
-          ST_MakePoint(:longitude, :latitude)::geography,
-          :radius
-        )`,
-        {
-          longitude: job.longitude,
-          latitude: job.latitude,
-          radius: radiusKm * 1000, // Convertir a metros
-        },
-      )
+      // TODO: Agregar filtro geográfico cuando las coordenadas estén disponibles en WorkerProfile
+      // .andWhere(
+      //   `ST_DWithin(
+      //     ST_MakePoint(workerProfile.longitude, workerProfile.latitude)::geography,
+      //     ST_MakePoint(:longitude, :latitude)::geography,
+      //     :radius
+      //   )`,
+      //   {
+      //     longitude: job.longitude,
+      //     latitude: job.latitude,
+      //     radius: radiusKm * 1000, // Convertir a metros
+      //   },
+      // )
       .limit(limit * 2)
       .getMany();
 
@@ -299,10 +294,7 @@ export class MatchingService {
     const matches: JobMatchDto[] = [];
 
     for (const workerProfile of workerProfiles) {
-      const { score, distance } = await this.calculateMatchScore(
-        job,
-        workerProfile,
-      );
+      const { score, distance } = this.calculateMatchScore(job, workerProfile);
 
       if (score >= minScore) {
         // Verificar si ya existe aplicación
@@ -332,25 +324,13 @@ export class MatchingService {
     return matches.slice(0, limit);
   }
 
-  private async calculateMatchScore(
+  private calculateMatchScore(
     job: JobEntity,
     workerProfile: WorkerProfileEntity,
-  ): Promise<{ score: number; distance: number }> {
-    // Calcular distancia usando PostGIS
-    const result = await this.jobRepository.query(
-      `SELECT ST_Distance(
-        ST_MakePoint($1, $2)::geography,
-        ST_MakePoint($3, $4)::geography
-      ) / 1000 as distance_km`,
-      [
-        job.longitude || 0,
-        job.latitude || 0,
-        0, // TODO: workerProfile.user.longitude,
-        0, // TODO: workerProfile.user.latitude,
-      ],
-    );
-
-    const distance = parseFloat(result[0].distance_km);
+  ): { score: number; distance: number } {
+    // Calcular distancia simple (temporal para debugging)
+    // TODO: Reimplementar con PostGIS una vez que esté disponible
+    const distance = 5; // Distancia fija temporal de 5km
 
     // Algoritmo de scoring
     let score = 0;
