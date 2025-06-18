@@ -42,8 +42,12 @@ const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
     });
 // </database-block>
 
+import { unnamedsModule } from './unnameds/unnameds.module';
+import { WorkersModule } from './workers/workers.module';
+
 @Module({
   imports: [
+    unnamedsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [
@@ -92,6 +96,7 @@ const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
     MailModule,
     MailerModule,
     HomeModule,
+    WorkersModule,
   ],
 })
 export class AppModule {}

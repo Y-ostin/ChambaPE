@@ -1,0 +1,283 @@
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, In } from 'typeorm';
+import { WorkerProfileEntity } from '../users/infrastructure/persistence/relational/entities/worker-profile.entity';
+import { UserEntity } from '../users/infrastructure/persistence/relational/entities/user.entity';
+import { ServiceCategoryEntity } from '../services/infrastructure/persistence/relational/entities/service-category.entity';
+import { CreateWorkerDto } from './dto/create-worker.dto';
+import { UpdateWorkerDto } from './dto/update-worker.dto';
+import { FindNearbyWorkersDto } from './dto/find-nearby-workers.dto';
+import { WorkerDto } from './dto/worker.dto';
+import { RoleEnum } from '../roles/roles.enum';
+
+@Injectable()
+export class WorkersService {
+  constructor(
+    @InjectRepository(WorkerProfileEntity)
+    private readonly workerProfileRepository: Repository<WorkerProfileEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(ServiceCategoryEntity)
+    private readonly serviceCategoryRepository: Repository<ServiceCategoryEntity>,
+  ) {}
+
+  async create(
+    userId: number,
+    createWorkerDto: CreateWorkerDto,
+  ): Promise<WorkerDto> {
+    // Verificar si el usuario existe
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['role'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    // Verificar si ya tiene perfil de trabajador
+    const existingWorker = await this.workerProfileRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+    if (existingWorker) {
+      throw new ConflictException(
+        'El usuario ya está registrado como trabajador',
+      );
+    }
+
+    // Verificar categorías de servicio si se proporcionan
+    if (createWorkerDto.serviceCategories?.length) {
+      const categories = await this.serviceCategoryRepository.findBy({
+        id: In(createWorkerDto.serviceCategories),
+        isActive: true,
+      });
+
+      if (categories.length !== createWorkerDto.serviceCategories.length) {
+        throw new BadRequestException(
+          'Una o más categorías de servicio no son válidas',
+        );
+      }
+    }
+
+    // Crear perfil de trabajador
+    const workerProfile = this.workerProfileRepository.create({
+      user,
+      description: createWorkerDto.description,
+      radiusKm: createWorkerDto.radiusKm || 10,
+      dniDocumentUrl: createWorkerDto.dniDocumentUrl,
+      dniNumber: createWorkerDto.dniNumber,
+      criminalRecordUrl: createWorkerDto.criminalRecordUrl,
+      certificatesUrls: createWorkerDto.certificatesUrls,
+    });
+
+    await this.workerProfileRepository.save(workerProfile);
+
+    // Actualizar rol del usuario a worker
+    user.role = { id: RoleEnum.worker } as any;
+    await this.userRepository.save(user);
+
+    return this.findByUserId(userId);
+  }
+
+  async findNearby(findNearbyDto: FindNearbyWorkersDto): Promise<WorkerDto[]> {
+    const {
+      latitude,
+      longitude,
+      radiusKm = 10,
+      // serviceCategoryId, // TODO: Implementar filtro por categoría cuando se agregue la relación
+      verifiedOnly,
+      activeToday,
+    } = findNearbyDto;
+
+    let query = this.workerProfileRepository
+      .createQueryBuilder('worker')
+      .leftJoinAndSelect('worker.user', 'user')
+      .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('user.userProfile', 'userProfile')
+      .where('user.roleId = :roleId', { roleId: RoleEnum.worker })
+      .andWhere('user.deletedAt IS NULL');
+
+    // Filtro geográfico usando la fórmula de Haversine
+    query = query.andWhere(
+      `(
+        6371 * acos(
+          cos(radians(:latitude)) * 
+          cos(radians(userProfile.latitude)) * 
+          cos(radians(userProfile.longitude) - radians(:longitude)) + 
+          sin(radians(:latitude)) * 
+          sin(radians(userProfile.latitude))
+        )
+      ) <= worker.radiusKm AND (
+        6371 * acos(
+          cos(radians(:latitude)) * 
+          cos(radians(userProfile.latitude)) * 
+          cos(radians(userProfile.longitude) - radians(:longitude)) + 
+          sin(radians(:latitude)) * 
+          sin(radians(userProfile.latitude))
+        )
+      ) <= :radiusKm`,
+      { latitude, longitude, radiusKm },
+    );
+
+    if (verifiedOnly) {
+      query = query.andWhere('worker.isVerified = :verified', {
+        verified: true,
+      });
+    }
+
+    if (activeToday) {
+      query = query.andWhere('worker.isActiveToday = :active', {
+        active: true,
+      });
+    }
+
+    // Agregar distancia al resultado
+    query = query.addSelect(
+      `(
+        6371 * acos(
+          cos(radians(:latitude)) * 
+          cos(radians(userProfile.latitude)) * 
+          cos(radians(userProfile.longitude) - radians(:longitude)) + 
+          sin(radians(:latitude)) * 
+          sin(radians(userProfile.latitude))
+        )
+      )`,
+      'distance',
+    );
+
+    query = query.orderBy('distance', 'ASC');
+
+    const workers = await query.getRawAndEntities();
+
+    return workers.entities.map((worker, index) => ({
+      ...this.mapToDto(worker),
+      distance: parseFloat(workers.raw[index].distance),
+    }));
+  }
+
+  async findByUserId(userId: number): Promise<WorkerDto> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user', 'user.role', 'user.userProfile'],
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Perfil de trabajador no encontrado');
+    }
+
+    return this.mapToDto(worker);
+  }
+
+  async findOne(id: number): Promise<WorkerDto> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { id },
+      relations: ['user', 'user.role', 'user.userProfile'],
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Trabajador no encontrado');
+    }
+
+    return this.mapToDto(worker);
+  }
+
+  async findAll(): Promise<WorkerDto[]> {
+    const workers = await this.workerProfileRepository.find({
+      relations: ['user', 'user.role', 'user.userProfile'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return workers.map((worker) => this.mapToDto(worker));
+  }
+
+  async update(
+    userId: number,
+    updateWorkerDto: UpdateWorkerDto,
+  ): Promise<WorkerDto> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Perfil de trabajador no encontrado');
+    }
+
+    await this.workerProfileRepository.update(worker.id, updateWorkerDto);
+
+    return this.findByUserId(userId);
+  }
+
+  async toggleActiveToday(userId: number): Promise<WorkerDto> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Perfil de trabajador no encontrado');
+    }
+
+    await this.workerProfileRepository.update(worker.id, {
+      isActiveToday: !worker.isActiveToday,
+    });
+
+    return this.findByUserId(userId);
+  }
+
+  async verifyWorker(id: number): Promise<WorkerDto> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { id },
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Trabajador no encontrado');
+    }
+
+    await this.workerProfileRepository.update(id, {
+      isVerified: true,
+    });
+
+    return this.findOne(id);
+  }
+
+  async remove(id: number): Promise<void> {
+    const worker = await this.workerProfileRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!worker) {
+      throw new NotFoundException('Trabajador no encontrado');
+    }
+
+    // Cambiar rol del usuario de vuelta a user
+    worker.user.role = { id: RoleEnum.user } as any;
+    await this.userRepository.save(worker.user);
+
+    // Eliminar perfil de trabajador
+    await this.workerProfileRepository.delete(id);
+  }
+
+  private mapToDto(worker: WorkerProfileEntity): WorkerDto {
+    return {
+      id: worker.id,
+      user: worker.user,
+      description: worker.description || undefined,
+      radiusKm: worker.radiusKm,
+      ratingAverage: parseFloat(worker.ratingAverage.toString()),
+      totalJobsCompleted: worker.totalJobsCompleted,
+      isVerified: worker.isVerified,
+      isActiveToday: worker.isActiveToday,
+      monthlySubscriptionStatus: worker.monthlySubscriptionStatus,
+      subscriptionExpiresAt: worker.subscriptionExpiresAt || undefined,
+      certificatesUrls: worker.certificatesUrls,
+      createdAt: worker.createdAt,
+      updatedAt: worker.updatedAt,
+    };
+  }
+}
