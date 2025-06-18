@@ -45,6 +45,7 @@ const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
 import { unnamedsModule } from './unnameds/unnameds.module';
 import { WorkersModule } from './workers/workers.module';
 import { ServicesModule } from './services/services.module';
+import { JobsModule } from './jobs/jobs.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { ServicesModule } from './services/services.module';
     HomeModule,
     WorkersModule,
     ServicesModule,
+    JobsModule,
   ],
 })
 export class AppModule {}

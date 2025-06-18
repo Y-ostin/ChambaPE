@@ -57,8 +57,8 @@ export class JobEntity extends EntityRelationalHelper {
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ type: 'varchar', length: 500 })
-  locationAddress: string;
+  @Column({ type: 'varchar', length: 300 })
+  address: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 8 })
   @Index()
@@ -68,17 +68,17 @@ export class JobEntity extends EntityRelationalHelper {
   @Index()
   longitude: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  estimatedBudget: number | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  preferredDateTime: Date | null;
+
   @Column({ type: 'json', nullable: true })
-  photosUrls: string[];
+  imageUrls: string[];
 
-  @Column({ type: 'integer' })
-  estimatedHours: number;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  budgetMin: number;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  budgetMax: number;
+  @Column({ type: 'text', nullable: true })
+  notes: string | null;
 
   @Column({
     type: 'enum',
@@ -87,18 +87,6 @@ export class JobEntity extends EntityRelationalHelper {
   })
   @Index()
   status: JobStatus;
-
-  @Column({ type: 'timestamp' })
-  scheduledDate: Date;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  finalPrice: number | null;
-
-  @Column({ type: 'timestamp', nullable: true })
-  startedAt: Date | null;
-
-  @Column({ type: 'timestamp', nullable: true })
-  completedAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

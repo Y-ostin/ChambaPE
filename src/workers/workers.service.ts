@@ -217,7 +217,9 @@ export class WorkersService {
 
     // Si se especificaron categorías de servicios, actualizarlas por separado
     if (serviceCategories && serviceCategories.length > 0) {
-      await this.updateWorkerServices(worker.id, { serviceCategoryIds: serviceCategories });
+      await this.updateWorkerServices(worker.id, {
+        serviceCategoryIds: serviceCategories,
+      });
     }
 
     return this.findByUserId(userId);
