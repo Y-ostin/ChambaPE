@@ -100,7 +100,7 @@ export class MatchingController {
 
   @Post('job/:jobId/apply')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(RoleEnum.user)
+  @Roles(RoleEnum.worker)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Aplicar a un trabajo' })
   @ApiParam({

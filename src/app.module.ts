@@ -47,6 +47,7 @@ import { WorkersModule } from './workers/workers.module';
 import { ServicesModule } from './services/services.module';
 import { JobsModule } from './jobs/jobs.module';
 import { MatchingModule } from './matching/matching.module';
+import { OffersModule } from './offers/offers.module';
 
 @Module({
   imports: [
@@ -103,6 +104,7 @@ import { MatchingModule } from './matching/matching.module';
     ServicesModule,
     JobsModule,
     MatchingModule,
+    OffersModule,
   ],
 })
 export class AppModule {}
