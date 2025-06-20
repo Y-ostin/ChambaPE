@@ -9,11 +9,9 @@ import mailConfig from './mail/config/mail.config';
 import fileConfig from './files/config/file.config';
 import facebookConfig from './auth-facebook/config/facebook.config';
 import googleConfig from './auth-google/config/google.config';
-import appleConfig from './auth-apple/config/apple.config';
 import path from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthAppleModule } from './auth-apple/auth-apple.module';
 import { AuthFacebookModule } from './auth-facebook/auth-facebook.module';
 import { AuthGoogleModule } from './auth-google/auth-google.module';
 import { HeaderResolver, I18nModule } from 'nestjs-i18n';
@@ -42,7 +40,6 @@ const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
     });
 // </database-block>
 
-import { unnamedsModule } from './unnameds/unnameds.module';
 import { WorkersModule } from './workers/workers.module';
 import { ServicesModule } from './services/services.module';
 import { JobsModule } from './jobs/jobs.module';
@@ -51,7 +48,6 @@ import { OffersModule } from './offers/offers.module';
 
 @Module({
   imports: [
-    unnamedsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [
@@ -62,7 +58,6 @@ import { OffersModule } from './offers/offers.module';
         fileConfig,
         facebookConfig,
         googleConfig,
-        appleConfig,
       ],
       envFilePath: ['.env'],
     }),
@@ -95,7 +90,6 @@ import { OffersModule } from './offers/offers.module';
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,
-    AuthAppleModule,
     SessionModule,
     MailModule,
     MailerModule,
