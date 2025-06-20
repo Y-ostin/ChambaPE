@@ -8,13 +8,22 @@ export class OfferDto {
   @ApiProperty({ example: 1, description: 'ID del trabajo' })
   jobId: number;
 
-  @ApiProperty({ example: 'Reparación de grifo', description: 'Título del trabajo' })
+  @ApiProperty({
+    example: 'Reparación de grifo',
+    description: 'Título del trabajo',
+  })
   jobTitle: string;
 
-  @ApiProperty({ example: 'Necesito reparar un grifo...', description: 'Descripción del trabajo' })
+  @ApiProperty({
+    example: 'Necesito reparar un grifo...',
+    description: 'Descripción del trabajo',
+  })
   jobDescription: string;
 
-  @ApiProperty({ example: 6, description: 'ID del worker que recibe la oferta' })
+  @ApiProperty({
+    example: 6,
+    description: 'ID del worker que recibe la oferta',
+  })
   workerId: number;
 
   @ApiProperty({ example: 'Test Worker', description: 'Nombre del worker' })
@@ -23,20 +32,20 @@ export class OfferDto {
   @ApiProperty({ enum: OfferStatus, example: OfferStatus.PENDING })
   status: OfferStatus;
 
-  @ApiProperty({ example: 75.50, description: 'Presupuesto propuesto' })
+  @ApiProperty({ example: 75.5, description: 'Presupuesto propuesto' })
   proposedBudget: number;
 
-  @ApiProperty({ 
-    example: 'Hola, tengo disponibilidad para realizar este trabajo', 
+  @ApiProperty({
+    example: 'Hola, tengo disponibilidad para realizar este trabajo',
     description: 'Mensaje de la oferta',
-    required: false 
+    required: false,
   })
   message?: string;
 
-  @ApiProperty({ 
-    example: 'No tengo disponibilidad en esa fecha', 
+  @ApiProperty({
+    example: 'No tengo disponibilidad en esa fecha',
     description: 'Razón del rechazo',
-    required: false 
+    required: false,
   })
   rejectionReason?: string;
 
@@ -46,20 +55,23 @@ export class OfferDto {
   @ApiProperty({ example: 3.2, description: 'Distancia en kilómetros' })
   distance: number;
 
-  @ApiProperty({ example: '2025-06-19T15:00:00Z', description: 'Fecha de creación' })
+  @ApiProperty({
+    example: '2025-06-19T15:00:00Z',
+    description: 'Fecha de creación',
+  })
   createdAt: Date;
 
-  @ApiProperty({ 
-    example: '2025-06-19T16:30:00Z', 
+  @ApiProperty({
+    example: '2025-06-19T16:30:00Z',
     description: 'Fecha de respuesta',
-    required: false 
+    required: false,
   })
   respondedAt?: Date;
 
-  @ApiProperty({ 
-    example: '2025-06-19T17:00:00Z', 
+  @ApiProperty({
+    example: '2025-06-19T17:00:00Z',
     description: 'Fecha de expiración',
-    required: false 
+    required: false,
   })
   expiresAt?: Date;
 }

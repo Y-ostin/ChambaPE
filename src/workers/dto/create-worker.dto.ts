@@ -76,4 +76,36 @@ export class CreateWorkerDto {
   @IsArray()
   @IsNumber({}, { each: true })
   serviceCategories?: number[];
+
+  @ApiProperty({
+    description: 'Dirección completa del trabajador',
+    example: 'Av. José Larco 123, Miraflores, Lima',
+  })
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @ApiProperty({
+    description: 'Latitud de la ubicación del trabajador',
+    example: -12.1267,
+    minimum: -90,
+    maximum: 90,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @ApiProperty({
+    description: 'Longitud de la ubicación del trabajador',
+    example: -77.0278,
+    minimum: -180,
+    maximum: 180,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
 }

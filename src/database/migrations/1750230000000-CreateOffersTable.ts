@@ -40,7 +40,8 @@ export class CreateOffersTable1750230000000 implements MigrationInterface {
 
     await queryRunner.query(`
       CREATE INDEX "IDX_offers_status_created" ON "offers" ("status", "createdAt")
-    `);    await queryRunner.query(`
+    `);
+    await queryRunner.query(`
       ALTER TABLE "offers" 
       ADD CONSTRAINT "FK_offers_job_id" 
       FOREIGN KEY ("job_id") 
@@ -58,8 +59,12 @@ export class CreateOffersTable1750230000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "offers" DROP CONSTRAINT "FK_offers_worker_id"`);
-    await queryRunner.query(`ALTER TABLE "offers" DROP CONSTRAINT "FK_offers_job_id"`);
+    await queryRunner.query(
+      `ALTER TABLE "offers" DROP CONSTRAINT "FK_offers_worker_id"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "offers" DROP CONSTRAINT "FK_offers_job_id"`,
+    );
     await queryRunner.query(`DROP INDEX "public"."IDX_offers_status_created"`);
     await queryRunner.query(`DROP INDEX "public"."IDX_offers_job_worker"`);
     await queryRunner.query(`DROP TABLE "offers"`);

@@ -14,6 +14,7 @@ import { RoleEntity } from '../../../../../roles/infrastructure/persistence/rela
 import { StatusEntity } from '../../../../../statuses/infrastructure/persistence/relational/entities/status.entity';
 import { FileEntity } from '../../../../../files/infrastructure/persistence/relational/entities/file.entity';
 import { WorkerProfileEntity } from './worker-profile.entity';
+import { UserProfileEntity } from './user-profile.entity';
 
 import { AuthProvidersEnum } from '../../../../../auth/auth-providers.enum';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
@@ -66,6 +67,9 @@ export class UserEntity extends EntityRelationalHelper {
 
   @OneToOne(() => WorkerProfileEntity, (workerProfile) => workerProfile.user)
   workerProfile?: WorkerProfileEntity;
+
+  @OneToOne(() => UserProfileEntity, (userProfile) => userProfile.user)
+  userProfile?: UserProfileEntity;
 
   @CreateDateColumn()
   createdAt: Date;

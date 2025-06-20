@@ -15,6 +15,7 @@ import { OfferStatus } from './enums/offer-status.enum';
 import { OfferDto } from './dto/offer.dto';
 import { AcceptOfferDto } from './dto/accept-offer.dto';
 import { RejectOfferDto } from './dto/reject-offer.dto';
+import { JobStatus } from '../jobs/enums/job-status.enum';
 
 @Injectable()
 export class OffersService {
@@ -74,21 +75,20 @@ export class OffersService {
     }
 
     // Crear nueva oferta
-    const offer = this.offerRepository.create({
-      job,
-      worker: { id: bestMatch.worker.id } as UserEntity,
-      status: OfferStatus.PENDING,
-      proposedBudget: job.estimatedBudget,
-      message: `¡Hola! Te ofrecemos el trabajo "${job.title}". ¿Te interesa?`,
-      matchingScore: bestMatch.score,
-      distance: bestMatch.distance,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
-    });
+    const offer = new OfferEntity();
+    offer.job = job;
+    offer.worker = { id: bestMatch.worker.id } as UserEntity;
+    offer.status = OfferStatus.PENDING;
+    offer.proposedBudget = job.estimatedBudget || 0;
+    offer.message = `¡Hola! Te ofrecemos el trabajo "${job.title}". ¿Te interesa?`;
+    offer.matchingScore = bestMatch.score;
+    offer.distance = bestMatch.distance;
+    offer.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
 
     const savedOffer = await this.offerRepository.save(offer);
 
     // TODO: Enviar notificación al worker
-    
+
     return this.mapToDto(savedOffer);
   }
 
@@ -110,7 +110,9 @@ export class OffersService {
     }
 
     if (offer.worker.id !== workerId) {
-      throw new ForbiddenException('No tienes permiso para aceptar esta oferta');
+      throw new ForbiddenException(
+        'No tienes permiso para aceptar esta oferta',
+      );
     }
 
     if (offer.status !== OfferStatus.PENDING) {
@@ -132,13 +134,13 @@ export class OffersService {
     }
 
     // Actualizar el estado del trabajo a "en progreso"
-    offer.job.status = 'in_progress';
+    offer.job.status = JobStatus.IN_PROGRESS;
     await this.jobRepository.save(offer.job);
 
     const savedOffer = await this.offerRepository.save(offer);
 
     // TODO: Notificar al cliente que se aceptó la oferta
-    
+
     return this.mapToDto(savedOffer);
   }
 
@@ -160,7 +162,9 @@ export class OffersService {
     }
 
     if (offer.worker.id !== workerId) {
-      throw new ForbiddenException('No tienes permiso para rechazar esta oferta');
+      throw new ForbiddenException(
+        'No tienes permiso para rechazar esta oferta',
+      );
     }
 
     if (offer.status !== OfferStatus.PENDING) {
@@ -192,7 +196,7 @@ export class OffersService {
       })
       .getRawMany();
 
-    const excludedWorkerIds = rejectedWorkerIds.map(r => r.workerId);
+    const excludedWorkerIds = rejectedWorkerIds.map((r) => r.workerId);
 
     // Buscar matches excluyendo workers ya contactados
     const matches = await this.matchingService.findMatchesForJob(jobId, {
@@ -203,31 +207,32 @@ export class OffersService {
 
     // Filtrar workers ya contactados
     const availableMatches = matches.filter(
-      match => !excludedWorkerIds.includes(match.worker.id)
+      (match) => !excludedWorkerIds.includes(match.worker.id),
     );
 
     if (availableMatches.length > 0) {
       const nextWorker = availableMatches[0];
-      
+
       const job = await this.jobRepository.findOne({
         where: { id: jobId },
         relations: ['user', 'serviceCategory'],
       });
 
+      if (!job) return;
+
       // Crear oferta para el siguiente worker
-      const offer = this.offerRepository.create({
-        job,
-        worker: { id: nextWorker.worker.id } as UserEntity,
-        status: OfferStatus.PENDING,
-        proposedBudget: job.estimatedBudget,
-        message: `¡Hola! Te ofrecemos el trabajo "${job.title}". ¿Te interesa?`,
-        matchingScore: nextWorker.score,
-        distance: nextWorker.distance,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      });
+      const offer = new OfferEntity();
+      offer.job = job;
+      offer.worker = { id: nextWorker.worker.id } as UserEntity;
+      offer.status = OfferStatus.PENDING;
+      offer.proposedBudget = job.estimatedBudget || 0;
+      offer.message = `¡Hola! Te ofrecemos el trabajo "${job.title}". ¿Te interesa?`;
+      offer.matchingScore = nextWorker.score;
+      offer.distance = nextWorker.distance;
+      offer.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
       await this.offerRepository.save(offer);
-      
+
       // TODO: Enviar notificación al worker
     }
   }
@@ -253,7 +258,7 @@ export class OffersService {
     }
 
     const offers = await queryBuilder.getMany();
-    return offers.map(offer => this.mapToDto(offer));
+    return offers.map((offer) => this.mapToDto(offer));
   }
 
   /**
@@ -270,11 +275,13 @@ export class OffersService {
     }
 
     if (offer.status !== OfferStatus.ACCEPTED) {
-      throw new BadRequestException('Solo se pueden completar ofertas aceptadas');
+      throw new BadRequestException(
+        'Solo se pueden completar ofertas aceptadas',
+      );
     }
 
     offer.status = OfferStatus.COMPLETED;
-    offer.job.status = 'completed';
+    offer.job.status = JobStatus.COMPLETED;
 
     await this.offerRepository.save(offer);
     await this.jobRepository.save(offer.job);

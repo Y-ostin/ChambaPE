@@ -3,6 +3,8 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,6 +16,7 @@ import { UpdateJobDto } from './dto/update-job.dto';
 import { FindAllJobsDto } from './dto/find-all-jobs.dto';
 import { JobDto } from './dto/job.dto';
 import { JobStatus } from './enums/job-status.enum';
+import { OffersService } from '../offers/offers.service';
 
 @Injectable()
 export class JobsService {
@@ -24,6 +27,8 @@ export class JobsService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(ServiceCategoryEntity)
     private readonly serviceCategoryRepository: Repository<ServiceCategoryEntity>,
+    @Inject(forwardRef(() => OffersService))
+    private readonly offersService: OffersService,
   ) {}
 
   async create(userId: number, createJobDto: CreateJobDto): Promise<JobDto> {
@@ -69,6 +74,14 @@ export class JobsService {
     });
 
     await this.jobRepository.save(job);
+
+    // Crear ofertas automáticas para trabajadores compatibles
+    try {
+      await this.offersService.createAutomaticOffer(job.id);
+    } catch (error) {
+      console.error('Error creating automatic offers:', error);
+      // No fallar el job creation si las ofertas fallan
+    }
 
     return this.mapToDto(job);
   }

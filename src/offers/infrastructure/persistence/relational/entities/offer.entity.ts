@@ -49,10 +49,18 @@ export class OfferEntity {
   @Column({ type: 'timestamp', nullable: true })
   expiresAt: Date;
 
-  @Column('int', { default: 0, comment: 'Score de matching cuando se envió la oferta' })
+  @Column('int', {
+    default: 0,
+    comment: 'Score de matching cuando se envió la oferta',
+  })
   matchingScore: number;
 
-  @Column('decimal', { precision: 5, scale: 2, nullable: true, comment: 'Distancia en km' })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    comment: 'Distancia en km',
+  })
   distance: number;
 
   @CreateDateColumn()

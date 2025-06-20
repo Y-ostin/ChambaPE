@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { WorkerProfileEntity } from '../users/infrastructure/persistence/relational/entities/worker-profile.entity';
 import { UserEntity } from '../users/infrastructure/persistence/relational/entities/user.entity';
+import { UserProfileEntity } from '../users/infrastructure/persistence/relational/entities/user-profile.entity';
 import { ServiceCategoryEntity } from '../services/infrastructure/persistence/relational/entities/service-category.entity';
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { UpdateWorkerDto } from './dto/update-worker.dto';
@@ -23,6 +24,8 @@ export class WorkersService {
     private readonly workerProfileRepository: Repository<WorkerProfileEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(UserProfileEntity)
+    private readonly userProfileRepository: Repository<UserProfileEntity>,
     @InjectRepository(ServiceCategoryEntity)
     private readonly serviceCategoryRepository: Repository<ServiceCategoryEntity>,
   ) {}
@@ -79,6 +82,30 @@ export class WorkersService {
 
     await this.workerProfileRepository.save(workerProfile);
 
+    // Crear o actualizar perfil de usuario con ubicación si se proporciona
+    if (createWorkerDto.latitude && createWorkerDto.longitude) {
+      let userProfile = await this.userProfileRepository.findOne({
+        where: { user: { id: userId } },
+      });
+
+      if (userProfile) {
+        // Actualizar perfil existente
+        userProfile.address = createWorkerDto.address || userProfile.address;
+        userProfile.latitude = createWorkerDto.latitude;
+        userProfile.longitude = createWorkerDto.longitude;
+      } else {
+        // Crear nuevo perfil
+        userProfile = this.userProfileRepository.create({
+          user,
+          address: createWorkerDto.address || 'Dirección no especificada',
+          latitude: createWorkerDto.latitude,
+          longitude: createWorkerDto.longitude,
+        });
+      }
+
+      await this.userProfileRepository.save(userProfile);
+    }
+
     // Actualizar rol del usuario a worker
     user.role = { id: RoleEnum.worker } as any;
     await this.userRepository.save(user);
@@ -88,7 +115,9 @@ export class WorkersService {
 
   async findNearby(findNearbyDto: FindNearbyWorkersDto): Promise<WorkerDto[]> {
     const {
-      // serviceCategoryId, // TODO: Implementar filtro por categoría cuando se agregue la relación
+      latitude,
+      longitude,
+      radiusKm = 50,
       verifiedOnly,
       activeToday,
     } = findNearbyDto;
@@ -97,33 +126,46 @@ export class WorkersService {
       .createQueryBuilder('worker')
       .leftJoinAndSelect('worker.user', 'user')
       .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('user.userProfile', 'userProfile')
       .where('user.roleId = :roleId', { roleId: RoleEnum.worker })
       .andWhere('user.deletedAt IS NULL');
 
-    // TODO: Filtro geográfico - temporalmente deshabilitado
-    // Las coordenadas deben agregarse a WorkerProfileEntity o UserEntity
-    /*
-    query = query.andWhere(
-      `(
-        6371 * acos(
-          cos(radians(:latitude)) * 
-          cos(radians(userProfile.latitude)) * 
-          cos(radians(userProfile.longitude) - radians(:longitude)) + 
-          sin(radians(:latitude)) * 
-          sin(radians(userProfile.latitude))
-        )
-      ) <= worker.radiusKm AND (
-        6371 * acos(
-          cos(radians(:latitude)) * 
-          cos(radians(userProfile.latitude)) * 
-          cos(radians(userProfile.longitude) - radians(:longitude)) + 
-          sin(radians(:latitude)) * 
-          sin(radians(userProfile.latitude))
-        )
-      ) <= :radiusKm`,
-      { latitude, longitude, radiusKm },
-    );
-    */
+    // Filtro geográfico con UserProfile
+    if (latitude && longitude) {
+      query = query
+        .andWhere('userProfile.latitude IS NOT NULL')
+        .andWhere('userProfile.longitude IS NOT NULL')
+        .andWhere(
+          `(
+            6371 * acos(
+              cos(radians(:latitude)) * 
+              cos(radians(userProfile.latitude)) * 
+              cos(radians(userProfile.longitude) - radians(:longitude)) + 
+              sin(radians(:latitude)) * 
+              sin(radians(userProfile.latitude))
+            )
+          ) <= :radiusKm`,
+          { latitude, longitude, radiusKm },
+        );
+
+      // Agregar cálculo de distancia
+      query = query.addSelect(
+        `(
+          6371 * acos(
+            cos(radians(:latitude)) * 
+            cos(radians(userProfile.latitude)) * 
+            cos(radians(userProfile.longitude) - radians(:longitude)) + 
+            sin(radians(:latitude)) * 
+            sin(radians(userProfile.latitude))
+          )
+        )`,
+        'distance',
+      );
+
+      query = query.orderBy('distance', 'ASC');
+    } else {
+      query = query.orderBy('worker.createdAt', 'DESC');
+    }
 
     if (verifiedOnly) {
       query = query.andWhere('worker.isVerified = :verified', {
@@ -137,31 +179,14 @@ export class WorkersService {
       });
     }
 
-    // TODO: Agregar cálculo de distancia cuando estén disponibles las coordenadas
-    /*
-    query = query.addSelect(
-      `(
-        6371 * acos(
-          cos(radians(:latitude)) * 
-          cos(radians(userProfile.latitude)) * 
-          cos(radians(userProfile.longitude) - radians(:longitude)) + 
-          sin(radians(:latitude)) * 
-          sin(radians(userProfile.latitude))
-        )
-      )`,
-      'distance',
-    );
+    const workers = await query.getRawAndEntities();
 
-    query = query.orderBy('distance', 'ASC');
-    */
-
-    query = query.orderBy('worker.createdAt', 'DESC');
-
-    const workers = await query.getMany();
-
-    return workers.map((worker) => ({
+    return workers.entities.map((worker, index) => ({
       ...this.mapToDto(worker),
-      distance: 0, // TODO: Calcular distancia real
+      distance:
+        latitude && longitude
+          ? parseFloat(workers.raw[index]?.distance || '0')
+          : 0,
     }));
   }
 
