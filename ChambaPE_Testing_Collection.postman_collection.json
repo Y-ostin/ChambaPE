@@ -1,0 +1,741 @@
+{
+  "info": {
+    "name": "ChambaPE API - Testing Exhaustivo",
+    "description": "Colección completa para testing de la API ChambaPE - Sistema de matching de trabajos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clientUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workerUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workerId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Setup & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000"
+            }
+          }
+        },
+        {
+          "name": "Service Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["service-categories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Autenticación Cliente",
+      "item": [
+        {
+          "name": "Registrar Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente.test@chambaipe.com\",\n  \"password\": \"secret123\",\n  \"firstName\": \"Cliente\",\n  \"lastName\": \"Test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente.test@chambaipe.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (responseCode.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('authToken', jsonData.token);",
+                  "    pm.collectionVariables.set('clientUserId', jsonData.user.id);",
+                  "    console.log('Token guardado:', jsonData.token.substring(0,20) + '...');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mi Perfil Cliente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Autenticación Trabajador",
+      "item": [
+        {
+          "name": "Registrar Trabajador Usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"trabajador.test@chambaipe.com\",\n  \"password\": \"secret123\",\n  \"firstName\": \"Trabajador\",\n  \"lastName\": \"Test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login Trabajador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"trabajador.test@chambaipe.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (responseCode.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('workerToken', jsonData.token);",
+                  "    pm.collectionVariables.set('workerUserId', jsonData.user.id);",
+                  "    console.log('Worker token guardado:', jsonData.token.substring(0,20) + '...');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Gestión de Trabajadores",
+      "item": [
+        {
+          "name": "Registrar como Trabajador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Plomero especializado con 5 años de experiencia en reparaciones residenciales y comerciales\",\n  \"radiusKm\": 15,\n  \"address\": \"Av. Javier Prado 123, San Isidro, Lima\",\n  \"latitude\": -12.0464,\n  \"longitude\": -77.0428,\n  \"serviceCategories\": [2]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workers/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["workers", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (responseCode.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('workerId', jsonData.id);",
+                  "    console.log('Worker profile creado con ID:', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mi Perfil Trabajador",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workers/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["workers", "me"]
+            }
+          }
+        },
+        {
+          "name": "Buscar Trabajadores Cercanos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workers/nearby?latitude=-12.0464&longitude=-77.0428&radiusKm=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["workers", "nearby"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "-12.0464"
+                },
+                {
+                  "key": "longitude", 
+                  "value": "-77.0428"
+                },
+                {
+                  "key": "radiusKm",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar Todos Trabajadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workers",
+              "host": ["{{baseUrl}}"],
+              "path": ["workers"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Gestión de Trabajos",
+      "item": [
+        {
+          "name": "Crear Trabajo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Reparación urgente de tubería en cocina\",\n  \"description\": \"Necesito reparar una tubería que está goteando en la cocina. El problema parece ser en la conexión del fregadero. Es urgente porque está causando daños.\",\n  \"serviceCategoryId\": 2,\n  \"latitude\": -12.0464,\n  \"longitude\": -77.0428,\n  \"address\": \"Av. Universitaria 456, San Miguel, Lima\",\n  \"estimatedBudget\": 120.00,\n  \"preferredDateTime\": \"2025-06-25T14:00:00Z\",\n  \"notes\": \"Acceso por escaleras del segundo piso. Herramientas necesarias incluidas.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (responseCode.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jobId', jsonData.id);",
+                  "    console.log('Job creado con ID:', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Trabajos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          }
+        },
+        {
+          "name": "Mis Trabajos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/my-jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "my-jobs"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Trabajo por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "Búsqueda Geográfica de Trabajos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs?latitude=-12.0464&longitude=-77.0428&radiusKm=15&serviceCategoryId=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "-12.0464"
+                },
+                {
+                  "key": "longitude",
+                  "value": "-77.0428"
+                },
+                {
+                  "key": "radiusKm",
+                  "value": "15"
+                },
+                {
+                  "key": "serviceCategoryId",
+                  "value": "2"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Sistema de Matching",
+      "item": [
+        {
+          "name": "Trabajadores para Trabajo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/matching/job/{{jobId}}/workers",
+              "host": ["{{baseUrl}}"],
+              "path": ["matching", "job", "{{jobId}}", "workers"]
+            }
+          }
+        },
+        {
+          "name": "Trabajos para Trabajador",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/matching/worker/{{workerId}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["matching", "worker", "{{workerId}}", "jobs"]
+            }
+          }
+        },
+        {
+          "name": "Mis Matches (Trabajador)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/matching/my-matches",
+              "host": ["{{baseUrl}}"],
+              "path": ["matching", "my-matches"]
+            }
+          }
+        },
+        {
+          "name": "Aplicar a Trabajo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hola, tengo 5 años de experiencia en plomería residencial. Puedo atender este trabajo hoy mismo en el horario indicado. Cuento con todas las herramientas necesarias.\",\n  \"proposedBudget\": 100.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/matching/job/{{jobId}}/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["matching", "job", "{{jobId}}", "apply"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Gestión de Servicios",
+      "item": [
+        {
+          "name": "Agregar Servicios al Trabajador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceIds\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workers/me/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["workers", "me", "services"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Mis Servicios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workers/me/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["workers", "me", "services"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Servicios",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceIds\": [2, 4, 5]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workers/me/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["workers", "me", "services"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Tests de Validación",
+      "item": [
+        {
+          "name": "Email Duplicado (Error)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente.test@chambaipe.com\",\n  \"password\": \"secret123\",\n  \"firstName\": \"Duplicate\",\n  \"lastName\": \"Test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Debe retornar error 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trabajo Sin Autenticación (Error)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Trabajo sin auth\",\n  \"description\": \"Este trabajo no debería crearse\",\n  \"serviceCategoryId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Debe retornar error 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Coordenadas Inválidas (Error)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test coordenadas\",\n  \"description\": \"Test con coordenadas inválidas\",\n  \"serviceCategoryId\": 1,\n  \"latitude\": 999,\n  \"longitude\": 999,\n  \"address\": \"Test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Debe retornar error 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Cleanup",
+      "item": [
+        {
+          "name": "Logout Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Logout Trabajador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
