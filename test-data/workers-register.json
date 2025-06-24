@@ -1,0 +1,17 @@
+{
+  "email": "trabajador.prueba@chambaipe.com",
+  "password": "secret123",
+  "firstName": "Trabajador",
+  "lastName": "Prueba",
+  "phone": "+51987654321",
+  "dateOfBirth": "1990-05-15",
+  "address": "Av. Javier Prado 123, San Isidro",
+  "location": {
+    "latitude": -12.0464,
+    "longitude": -77.0428
+  },
+  "skills": ["Plomería", "Reparaciones menores"],
+  "experience": "3 años de experiencia en instalaciones residenciales",
+  "hourlyRate": 50.00,
+  "serviceRadius": 10
+}
