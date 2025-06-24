@@ -790,3 +790,195 @@ tree /f src | more
   npm run seed:run:relational
   npm run start:dev
   ```
+
+---
+
+## 🚀 Despliegue a Producción (AWS)
+
+### **Arquitectura AWS Recomendada**
+
+ChambaPE está diseñado para escalar en AWS con la siguiente arquitectura:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AWS PRODUCTION STACK                     │
+├─────────────────────────────────────────────────────────────┤
+│ • ECS Fargate (NestJS API)                                 │
+│ • RDS PostgreSQL (Multi-AZ)                               │
+│ • ElastiCache Redis (Sessions)                            │
+│ • Lambda Functions (RENIEC/SUNAT validations)             │
+│ • SQS (Validation processing)                             │
+│ • Step Functions (Validation orchestration)               │
+│ • SES (Email service)                                     │
+│ • S3 (File storage)                                       │
+│ • CloudWatch (Monitoring)                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **Nuevas Validaciones RENIEC/SUNAT**
+
+> **Importante**: La nueva rama incluye validaciones avanzadas para trabajadores formales
+
+**Flujo de Validación:**
+1. **Worker registra** perfil con datos personales
+2. **Sistema valida** identidad con RENIEC (DNI, nombres, apellidos)
+3. **Sistema consulta** SUNAT para verificar:
+   - Certificado Único Laboral
+   - Estado como trabajador formal
+   - Ausencia de antecedentes
+4. **Si validación es exitosa**: Envío de email de confirmación
+5. **Si validación falla**: Notificación de rechazo con motivos
+
+### **Servicios AWS para Validaciones**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                VALIDACIONES EXTERNAS                        │
+├─────────────────────────────────────────────────────────────┤
+│ • Lambda (RENIEC Validator)                                │
+│ • Lambda (SUNAT Validator)                                 │
+│ • Step Functions (Orchestration)                          │
+│ • SQS (Async processing)                                  │
+│ • Secrets Manager (API Keys)                              │
+│ • CloudWatch (Monitoring validations)                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **Variables de Entorno - Producción**
+
+```env
+# Validaciones RENIEC/SUNAT
+RENIEC_API_URL=${RENIEC_API_URL}           # From AWS Secrets Manager
+RENIEC_API_KEY=${RENIEC_API_KEY}           # From AWS Secrets Manager
+SUNAT_API_URL=${SUNAT_API_URL}             # From AWS Secrets Manager
+SUNAT_API_KEY=${SUNAT_API_KEY}             # From AWS Secrets Manager
+VALIDATION_QUEUE_URL=${SQS_VALIDATION_URL} # From Terraform output
+STEP_FUNCTION_ARN=${STEP_FUNCTION_ARN}     # From Terraform output
+
+# AWS Production Services
+DATABASE_HOST=${RDS_ENDPOINT}
+REDIS_HOST=${REDIS_ENDPOINT}
+MAIL_HOST=email-smtp.us-east-1.amazonaws.com
+FILE_DRIVER=s3
+AWS_DEFAULT_S3_BUCKET=chambape-files-prod
+```
+
+### **Costos Estimados AWS (Mensual)**
+
+| Servicio | Configuración | Costo Aprox. |
+|----------|---------------|--------------|
+| **ECS Fargate** | 2 vCPU, 4GB RAM (2 instancias) | $60-80 |
+| **RDS PostgreSQL** | db.t3.medium (Multi-AZ) | $80-120 |
+| **ElastiCache Redis** | cache.t3.micro | $15-25 |
+| **Lambda Functions** | 1M requests/month | $5-10 |
+| **SQS** | 1M messages | $1-3 |
+| **SES** | 10K emails | $1-2 |
+| **S3** | 100GB storage | $3-5 |
+| **CloudWatch** | Logs & Metrics | $10-20 |
+| **Data Transfer** | Regional | $5-15 |
+| **Total Estimado** | | **$180-280/mes** |
+
+### **Pasos de Migración**
+
+#### **1. Preparación (Semana 1)**
+```powershell
+# Crear infraestructura base
+cd infrastructure/
+terraform init
+terraform plan -var-file="production.tfvars"
+terraform apply
+
+# Configurar secretos
+aws secretsmanager create-secret --name "ChambaPE/database/credentials"
+aws secretsmanager create-secret --name "ChambaPE/external/apis"
+```
+
+#### **2. Despliegue de Aplicación (Semana 2)**
+```powershell
+# Build y push de imagen
+docker build -f Dockerfile.production -t chambape-api .
+aws ecr get-login-password | docker login --username AWS --password-stdin ACCOUNT.dkr.ecr.us-east-1.amazonaws.com
+docker tag chambape-api:latest ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/chambape-api:latest
+docker push ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/chambape-api:latest
+
+# Desplegar ECS service
+aws ecs create-service --service-name chambape-api --cluster ChambaPE-Cluster
+```
+
+#### **3. Configuración de Validaciones (Semana 3)**
+```powershell
+# Desplegar Lambda functions
+cd lambda/
+zip -r reniec-validator.zip reniec-validator/
+zip -r sunat-validator.zip sunat-validator/
+aws lambda create-function --function-name ChambaPE-RENIEC-Validator
+aws lambda create-function --function-name ChambaPE-SUNAT-Validator
+
+# Configurar Step Functions
+aws stepfunctions create-state-machine --name ChambaPE-Worker-Validation
+```
+
+### **Documentación de Migración Completa**
+
+📚 **Archivos de Referencia:**
+- `docs/aws-migration-plan.md` - Plan detallado de infraestructura
+- `docs/aws-production-config.md` - Configuración de producción
+- `infrastructure/` - Terraform files (próximamente)
+- `lambda/` - Functions para validaciones (próximamente)
+
+### **Monitoreo en Producción**
+
+**CloudWatch Dashboards:**
+- API Performance & Latency
+- Database Connection Pool
+- Validation Success/Failure Rate
+- Error Rate & Exception Tracking
+- Cost Optimization Metrics
+
+**Alertas Automáticas:**
+- High CPU/Memory usage
+- Database connection issues
+- Failed validations (RENIEC/SUNAT)
+- High error rate (>5%)
+- Cost threshold alerts
+
+---
+
+## 👥 Contribución
+
+### Flujo de Desarrollo
+1. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
+2. Desarrollar y probar localmente
+3. Ejecutar tests: `npm run test`
+4. Verificar linting: `npm run lint`
+5. Commit y push
+6. Crear Pull Request
+
+### Estándares de Código
+- **ESLint** configurado con reglas de NestJS
+- **Prettier** para formateo automático
+- **Conventional Commits** para mensajes de commit
+- **TypeScript** estricto habilitado
+
+---
+
+## 📞 Soporte
+
+### Documentación Adicional
+- **Swagger UI**: http://localhost:3000/docs
+- **Guía de Testing**: `GUIA_TESTING_COMPLETA.md`
+- **Arquitectura**: `docs/architecture.md`
+- **AWS Migration**: `docs/aws-migration-plan.md`
+
+### Problemas Comunes
+Si encuentras problemas, consulta:
+1. Esta guía de troubleshooting
+2. Los logs del servidor: `npm run start:dev`
+3. La documentación en `docs/`
+4. Los tests en `test/`
+
+---
+
+**¡El proyecto ChambaPE está listo para desarrollo y despliegue en AWS! 🚀**
+
+*Última actualización: 24 de Junio, 2025*
