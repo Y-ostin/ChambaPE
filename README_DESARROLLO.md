@@ -103,8 +103,6 @@ cd ChambaPE/nestjs-boilerplate
 npm install
 ```
 
-```
-
 ### 2. **Configurar Variables de Entorno**
 
 ```powershell
@@ -615,112 +613,180 @@ test-data/              # Datos de prueba
 
 ---
 
-## 🔧 Troubleshooting Común
+## ⚠️ Troubleshooting
 
-### Error de Conexión a Base de Datos
-```bash
+### 🔴 **Problemas Comunes**
+
+#### 1. **Error de conexión a PostgreSQL**
+```
+Error: connect ECONNREFUSED 127.0.0.1:5432
+```
+**Solución:**
+```powershell
 # Verificar que PostgreSQL esté corriendo
-sudo service postgresql status
+docker-compose ps
 
-# Verificar conexión
-psql -U postgres -d chambaipe_dev -c "SELECT 1;"
+# Si no está corriendo, levantarlo
+docker-compose up -d postgres
+
+# Verificar logs si persiste el error
+docker-compose logs postgres
 ```
 
-### Error de Migraciones
-```bash
-# Limpiar y recrear base de datos
+#### 2. **Error de migraciones - "column referenced in foreign key constraint does not exist"**
+```
+QueryFailedError: column "job_id" referenced in foreign key constraint does not exist
+Migration "CreateJobMatchTable1750223950000" failed
+```
+
+**Causa**: Esta migración puede fallar si se ejecutó parcialmente en el pasado.
+
+**Solución:**
+```powershell
+# Opción 1: Verificar si la tabla ya existe y tiene las columnas
+npm run typeorm -- --dataSource=src/database/data-source.ts query "SELECT column_name FROM information_schema.columns WHERE table_name = 'job_match';"
+
+# Si las columnas existen, marcar la migración como completada:
+npm run typeorm -- --dataSource=src/database/data-source.ts query "UPDATE migrations SET timestamp = 1750223950000 WHERE name = 'CreateJobMatchTable1750223950000';"
+
+# Opción 2: Si persiste, resetear la base de datos
 npm run schema:drop
 npm run migration:run
 npm run seed:run:relational
 ```
 
-### MailDev No Funciona
-```bash
-# Reiniciar MailDev
-docker restart maildev
+#### 3. **Error 403 Forbidden en endpoints de trabajador**
+```json
+{
+  "message": "Forbidden resource",
+  "error": "Forbidden", 
+  "statusCode": 403
+}
+```
+**Causa**: El usuario no tiene perfil de trabajador creado.
 
-# O verificar que el puerto 1025 esté libre
-netstat -tlnp | grep 1025
+**Solución:**
+```powershell
+# Después de registrarse como trabajador, crear el perfil:
+# POST /api/v1/workers/profile con datos completos
+# Revisar que el token tenga el rol correcto
 ```
 
-### Error de Permisos JWT
-```bash
-# Verificar que AUTH_JWT_SECRET esté configurado en .env
-# Debe ser una cadena larga y segura
+#### 4. **Ofertas automáticas no se generan**
+**Verificar:**
+1. ✅ Trabajador tiene perfil completo con servicios asignados
+2. ✅ Trabajo publicado coincide con servicios del trabajador
+3. ✅ Ubicaciones están dentro del radio configurado
+4. ✅ No existen ofertas previas para esa combinación
+
+#### 5. **MailDev no recibe correos**
+```powershell
+# Verificar que MailDev esté corriendo
+docker-compose ps | findstr maildev
+
+# Revisar configuración en .env
+# MAIL_HOST=localhost
+# MAIL_PORT=1025
+
+# Restart MailDev si es necesario
+docker-compose restart maildev
 ```
 
----
+#### 6. **Puerto 3000 ocupado**
+```
+Error: listen EADDRINUSE: address already in use :::3000
+```
+**Solución:**
+```powershell
+# Opción 1: Cambiar puerto en .env
+APP_PORT=3001
 
-## 🚀 Despliegue
-
-### Variables de Producción
-Al desplegar a producción, actualizar:
-
-```env
-# Base de datos de producción
-DATABASE_HOST=tu_host_produccion
-DATABASE_PASSWORD=password_seguro
-DATABASE_SSL_ENABLED=true
-
-# JWT más seguro
-AUTH_JWT_SECRET=jwt_secret_super_seguro_para_produccion
-AUTH_REFRESH_SECRET=refresh_secret_super_seguro_para_produccion
-
-# Email real (no MailDev)
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USER=tu_email@gmail.com
-MAIL_PASSWORD=tu_app_password
+# Opción 2: Encontrar y terminar proceso
+netstat -ano | findstr :3000
+taskkill /PID <PID_ENCONTRADO> /F
 ```
 
-### Comandos de Despliegue
-```bash
-# Build de producción
-npm run build
+#### 7. **Docker Desktop no responde (Windows)**
+**Solución:**
+```powershell
+# Reiniciar Docker Desktop
+# Ejecutar PowerShell como Administrador
+# Verificar que Hyper-V esté habilitado
+# Revisar recursos de sistema (RAM, CPU)
+```
 
-# Ejecutar migraciones en producción
+#### 8. **Error de migraciones en equipos nuevos**
+```
+Error: relation "job_match" already exists
+```
+**Causa**: Diferencias en el estado de la base de datos entre desarrolladores.
+
+**Solución para nuevos desarrolladores:**
+```powershell
+# 1. Limpiar base de datos completamente
+npm run schema:drop
+
+# 2. Ejecutar todas las migraciones desde cero
 npm run migration:run
 
-# Iniciar servidor de producción
-npm run start:prod
+# 3. Cargar datos iniciales
+npm run seed:run:relational
+
+# 4. Verificar que todo esté correcto
+npm run typeorm -- --dataSource=src/database/data-source.ts migration:show
 ```
 
----
+### 🔍 **Comandos de Diagnóstico**
 
-## 👥 Contribución
+```powershell
+# Estado de servicios Docker
+docker-compose ps
 
-### Flujo de Desarrollo
-1. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
-2. Desarrollar y probar localmente
-3. Ejecutar tests: `npm run test`
-4. Verificar linting: `npm run lint`
-5. Commit y push
-6. Crear Pull Request
+# Logs de servicios específicos
+docker-compose logs postgres
+docker-compose logs maildev
+docker-compose logs adminer
 
-### Estándares de Código
-- **ESLint** configurado con reglas de NestJS
-- **Prettier** para formateo automático
-- **Conventional Commits** para mensajes de commit
-- **TypeScript** estricto habilitado
+# Verificar estado de migraciones
+npm run typeorm -- --dataSource=src/database/data-source.ts migration:show
 
----
+# Verificar conectividad a DB
+npm run typeorm -- --dataSource=src/database/data-source.ts query "SELECT 1;"
 
-## 📞 Soporte
+# Info de la aplicación
+curl http://localhost:3000/api/v1
 
-### Documentación Adicional
-- **Swagger UI**: http://localhost:3000/api/docs
-- **Guía de Testing**: `GUIA_TESTING_COMPLETA.md`
-- **Arquitectura**: `docs/architecture.md`
+# Test de endpoint público
+curl http://localhost:3000/api/v1/services
 
-### Problemas Comunes
-Si encuentras problemas, consulta:
-1. Esta guía de troubleshooting
-2. Los logs del servidor: `npm run start:dev`
-3. La documentación en `docs/`
-4. Los tests en `test/`
+# Verificar estructura de archivos
+tree /f src | more
+```
 
----
+### 📞 **Obtener Ayuda**
 
-**¡El proyecto ChambaPE está listo para desarrollo! 🎉**
+1. **Documentación**: Revisar `/docs/` para información técnica detallada
+2. **Testing**: Consultar `GUIA_TESTING_COMPLETA.md` para validaciones
+3. **Issues**: Crear issue en GitHub con:
+   - Descripción del problema
+   - Pasos para reproducir
+   - Logs relevantes
+   - Información del entorno
 
-*Última actualización: 24 de Junio, 2025*
+### 🚨 **Problemas Conocidos y Soluciones**
+
+#### **Migración CreateJobMatchTable1750223950000**
+- **Problema**: Puede fallar en equipos donde se ejecutó parcialmente
+- **Síntoma**: Error "column referenced in foreign key constraint does not exist"
+- **Solución**: Seguir los pasos del punto 2 en troubleshooting
+- **Estado**: Conocido y documentado
+
+#### **Sincronización entre desarrolladores**
+- **Recomendación**: Al unirse al proyecto, siempre ejecutar:
+  ```powershell
+  docker-compose up -d postgres adminer maildev
+  npm run schema:drop
+  npm run migration:run
+  npm run seed:run:relational
+  npm run start:dev
+  ```
