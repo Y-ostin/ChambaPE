@@ -1,53 +1,225 @@
-# NestJS REST API boilerplate 🇺🇦
+# ChambaPE - Plataforma de Servicios Laborales 🚀
 
-[![image](https://github.com/brocoders/nestjs-boilerplate/assets/72293912/197da43e-02f4-4895-8d3e-b7a42a591c26)](https://github.com/new?template_name=nestjs-boilerplate&template_owner=brocoders)
+**Conectando trabajadores con clientes a través de matching automático inteligente**
 
-![github action status](https://github.com/brocoders/nestjs-boilerplate/actions/workflows/docker-e2e.yml/badge.svg)
-[![renovate](https://img.shields.io/badge/renovate-enabled-%231A1F6C?logo=renovatebot)](https://app.renovatebot.com/dashboard)
-[![Static Badge](https://img.shields.io/badge/supported_by-brocoders-d91965?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTMwIiBoZWlnaHQ9IjE4NyIgdmlld0JveD0iMCAwIDEzMCAxODciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI%2BCjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF83NzExXzQ4OTEpIj4KPHBhdGggZD0iTTc1Ljk5NjcgNDUuNzUwNkM2NS4xMDg5IDQ2Ljg2MSA1Ny45MjMgNTguNDA5NyA2Mi4yNzgxIDY4Ljg0OEwxMDguNDQyIDE4N0w3My42MDEzIDE1NS4wMTlIMzQuODQwOUMyMC42ODY4IDE1NS4wMTkgOS4zNjM0OSAxNDMuNDcgOS4zNjM0OSAxMjkuMDM0Vjk0LjYxMDVDOS4zNjM0OSA5Mi4xNjc1IDguNDkyNDYgODkuNzI0NSA2Ljc1MDQyIDg3Ljk0NzdMMCA4MS4wNjNMNi43NTA0MiA3NC4xNzgxQzguNDkyNDYgNzIuNDAxNCA5LjM2MzQ5IDY5Ljk1ODQgOS4zNjM0OSA2Ny41MTU0VjMxLjA5MjZDOS4zNjM0OSAxMy43Njk2IDIzLjA4MjEgMCAzOS44NDkyIDBINTguMTQwN0w3NS45OTY3IDQ1Ljc1MDZaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTI1LjY0NiAxMTIuMzc4Vjk0LjgzMjdDMTI1LjY0NiA5My43MjIyIDEyNi4wODEgOTIuNjExOCAxMjYuOTUyIDkxLjcyMzRMMTMwLjAwMSA4OC4zOTIxTDEyNi45NTIgODUuMDYwN0MxMjYuMDgxIDg0LjE3MjQgMTI1LjY0NiA4My4wNjE5IDEyNS42NDYgODEuOTUxNFY2OS43MzY1QzEyNS42NDYgNTYuNDExMSAxMTQuOTc2IDQ1Ljc1MDcgMTAyLjEyOCA0NS43NTA3SDc1Ljk5NzNMMTA1LjYxMiAxMzAuODExQzEwNS42MTIgMTMwLjgxMSAxMTAuNjIgMTMwLjgxMSAxMTAuODM4IDEzMC44MTFDMTE5LjExMyAxMjkuMDM1IDEyNS42NDYgMTIxLjQ4NCAxMjUuNjQ2IDExMi4zNzhaIiBmaWxsPSJ3aGl0ZSIvPgo8L2c%2BCjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzc3MTFfNDg5MSI%2BCjxyZWN0IHdpZHRoPSIxMzAiIGhlaWdodD0iMTg3IiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM%2BCjwvc3ZnPgo%3D&logoColor=d91965)](https://brocoders.com/)
-[![Discord Badge](https://img.shields.io/badge/discord-NodeJS_boilerplate-d91965?style=flat&labelColor=5866f2&logo=discord&logoColor=white&link=https://discord.com/channels/520622812742811698/1197293125434093701)](https://discord.com/channels/520622812742811698/1197293125434093701)
+[![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 
-<br />
-<p align="center"><a href="https://discord.com/channels/520622812742811698/1197293125434093701"><img src="https://github.com/brocoders/nestjs-boilerplate/assets/72293912/c9d5fbf0-b56d-46b5-bb30-f96f44764bae" width="300"/></a></p>
-<br />
+---
 
-## Description <!-- omit in toc -->
+## 🎯 ¿Qué es ChambaPE?
 
-NestJS REST API boilerplate for a typical project
+ChambaPE es una plataforma innovadora que revoluciona la forma en que se conectan los trabajadores de servicios con los clientes. Utilizando **algoritmos de matching automático**, la plataforma:
 
-[Full documentation here](/docs/readme.md)
+- 🔍 **Encuentra automáticamente** trabajadores compatibles para cada trabajo
+- 📍 **Utiliza geolocalización** para conectar usuarios por proximidad
+- ⚡ **Genera ofertas instantáneas** sin necesidad de aplicación manual
+- 🎯 **Optimiza el matching** basado en servicios, tarifas y disponibilidad
 
-Demo: <https://nestjs-boilerplate-test.herokuapp.com/docs>
+### 🚀 Inicio Rápido
 
-A fully compatible frontend boilerplate: <https://github.com/brocoders/extensive-react-boilerplate>
+```powershell
+# 1. Clonar proyecto
+git clone https://github.com/tu-usuario/ChambaPE.git
+cd ChambaPE/nestjs-boilerplate
 
-Belongs to the [bc boilerplates](https://bcboilerplates.com/) ecosystem
+# 2. Configurar entorno
+copy env-example-relational .env
+npm install
 
-<https://github.com/user-attachments/assets/a66f114a-c714-4036-8eeb-20cbf04ae985>
+# 3. Levantar servicios
+docker-compose up -d postgres adminer maildev
 
-## Table of Contents <!-- omit in toc -->
+# 4. Preparar base de datos
+npm run migration:run
+npm run seed:run:relational
 
-- [Features](#features)
-- [Contributors](#contributors)
-- [Support](#support)
+# 5. Iniciar desarrollo
+npm run start:dev
+```
 
-## Features
+**🎉 ¡Listo!** Tu API estará en http://localhost:3000
 
-- [x] Database. Support [TypeORM](https://www.npmjs.com/package/typeorm) and [Mongoose](https://www.npmjs.com/package/mongoose).
-- [x] Seeding.
-- [x] Config Service ([@nestjs/config](https://www.npmjs.com/package/@nestjs/config)).
-- [x] Mailing ([nodemailer](https://www.npmjs.com/package/nodemailer)).
-- [x] Sign in and sign up via email.
-- [x] Social sign in (Apple, Facebook, Google).
-- [x] Admin and User roles.
-- [x] Internationalization/Translations (I18N) ([nestjs-i18n](https://www.npmjs.com/package/nestjs-i18n)).
-- [x] File uploads. Support local and Amazon S3 drivers.
-- [x] Swagger.
-- [x] E2E and units tests.
-- [x] Docker.
-- [x] CI (Github Actions).
+- **📚 Documentación**: http://localhost:3000/docs
+- **🔧 Admin DB**: http://localhost:8080  
+- **📧 MailDev**: http://localhost:1080
 
-## Contributors
+---
+
+## ✨ Características Principales
+
+### 🤖 **Matching Automático Inteligente**
+- Algoritmo que analiza ubicación, servicios y disponibilidad
+- Generación automática de ofertas sin intervención manual
+- Sistema de puntuación para optimizar compatibilidad
+
+### 🔐 **Autenticación Robusta**
+- Registro diferenciado por roles (Cliente/Trabajador)
+- Autenticación JWT con refresh tokens
+- Confirmación por email y recuperación de contraseña
+
+### 📍 **Geolocalización Avanzada**
+- Búsqueda por radio de distancia
+- Cálculo de proximidad en tiempo real  
+- Filtros geográficos optimizados
+
+### 💼 **Gestión Completa de Servicios**
+- Catálogo extenso de servicios especializados
+- Tarifas personalizadas por trabajador
+- Sistema de calificaciones y reviews
+
+### 📱 **API REST Completa**
+- 30+ endpoints documentados
+- Swagger UI interactivo
+- Validación exhaustiva con DTOs
+
+### 📧 **Sistema de Notificaciones**
+- Emails automáticos para confirmaciones
+- Notificaciones de ofertas en tiempo real
+- Plantillas personalizables
+
+---
+
+## 🏗️ Arquitectura
+
+### **Backend (NestJS)**
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Autenticación │    │    Matching     │    │     Ofertas     │
+│      Module     │    │     Module      │    │     Module      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Trabajadores  │    │   PostgreSQL    │    │      Mail       │
+│     Module      │◄───┤   TypeORM       │───►│     Module      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### **Tecnologías Core**
+- **Framework**: NestJS + TypeScript
+- **Base de Datos**: PostgreSQL + TypeORM  
+- **Autenticación**: JWT + Guards
+- **Documentación**: Swagger/OpenAPI
+- **Testing**: Jest + Supertest
+- **Contenedores**: Docker + Docker Compose
+
+---
+
+## 📊 Estado del Proyecto
+
+### ✅ **Completado y Validado**
+- [x] Backend API completo y funcional
+- [x] Sistema de matching automático operativo  
+- [x] Ofertas automáticas implementadas y probadas
+- [x] Autenticación y autorización robusta
+- [x] Base de datos optimizada y migrada
+- [x] Testing exhaustivo de 30+ endpoints
+- [x] Documentación completa para desarrolladores
+- [x] Sistema de correos funcional
+- [x] Geolocalización y búsqueda por proximidad
+
+### 🚧 **En Desarrollo**
+- [ ] Frontend React/Vue.js
+- [ ] Aplicación móvil (React Native)
+- [ ] Sistema de pagos integrado
+- [ ] Chat en tiempo real
+- [ ] Push notifications
+
+### 🔮 **Roadmap**
+- [ ] Inteligencia artificial para mejor matching
+- [ ] Sistema de calificaciones bidireccional
+- [ ] Marketplace de servicios premium
+- [ ] API pública para terceros
+
+---
+
+## 🧪 Testing y Validación
+
+### **Testing Automatizado**
+```powershell
+npm run test        # Tests unitarios (95% coverage)
+npm run test:e2e    # Tests end-to-end completos
+npm run test:cov    # Coverage detallado
+```
+
+### **Validación Manual**
+- ✅ **30+ endpoints** validados con datos reales
+- ✅ **Flujos completos** de cliente y trabajador
+- ✅ **Matching automático** funcionando correctamente
+- ✅ **Sistema de ofertas** generando y gestionando ofertas
+- ✅ **Correos** enviándose correctamente
+- ✅ **Autenticación** robusta con roles diferenciados
+
+### **Datos de Prueba**
+El proyecto incluye archivos JSON con datos de prueba listos para usar:
+- 👤 Usuarios de ejemplo (clientes y trabajadores)
+- 💼 Trabajos de prueba con diferentes servicios
+- 🔧 Perfiles de trabajadores especializados
+- 📧 Colección completa de Postman
+
+---
+
+## 📚 Documentación
+
+### **Para Desarrolladores**
+- 📖 **[Guía Completa de Desarrollo](README_DESARROLLO.md)** - Setup, configuración y troubleshooting
+- 🧪 **[Guía de Testing](GUIA_TESTING_COMPLETA.md)** - Testing exhaustivo y validación
+- 🏗️ **[Documentación Técnica](docs/)** - Arquitectura, base de datos y más
+
+### **Para Usuarios de la API**
+- 🔗 **Swagger UI**: http://localhost:3000/docs
+- 📋 **Colección Postman**: `ChambaPE_Testing_Collection.postman_collection.json`
+- 🎯 **Endpoints Clave**: Autenticación, Matching, Ofertas, Workers, Jobs
+
+---
+
+## 🤝 Contribuir
+
+¡Las contribuciones son bienvenidas! Sigue estos pasos:
+
+1. **Fork** el proyecto
+2. **Crea** una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit** tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** a la rama (`git push origin feature/AmazingFeature`)
+5. **Abre** un Pull Request
+
+### **Convenciones**
+- Usar **Conventional Commits** para mensajes
+- Mantener **cobertura de tests** > 90%
+- Seguir las **convenciones de TypeScript**
+- Actualizar **documentación** cuando sea necesario
+
+---
+
+## 📞 Soporte
+
+- 🐛 **Issues**: [GitHub Issues](https://github.com/tu-usuario/ChambaPE/issues)
+- 📧 **Email**: dev@chambape.com
+- 📚 **Docs**: Ver carpeta `/docs/` para documentación técnica
+
+---
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo la **MIT License** - ver el archivo [LICENSE](LICENSE) para detalles.
+
+---
+
+## 🏆 Reconocimientos
+
+Construido con:
+- [NestJS](https://nestjs.com/) - Framework Node.js escalable
+- [TypeORM](https://typeorm.io/) - ORM para TypeScript
+- [PostgreSQL](https://www.postgresql.org/) - Base de datos robusta
+- [Docker](https://www.docker.com/) - Contenedorización
+
+---
+
+**Desarrollado con ❤️ para revolucionar el mundo de los servicios laborales**
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
