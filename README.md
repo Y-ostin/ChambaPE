@@ -80,6 +80,13 @@ npm run start:dev
 - Notificaciones de ofertas en tiempo real
 - Plantillas personalizables
 
+### 🔒 **Validación de Trabajadores (NUEVA FUNCIONALIDAD)**
+- **Integración con RENIEC** para validación de identidad
+- **Verificación SUNAT** para antecedentes tributarios
+- **Análisis de Certificado Único Laboral** con AWS Textract
+- **Flujo de validación automatizado** usando AWS Step Functions
+- **Procesamiento asíncrono** con Lambda Functions y SQS
+
 ---
 
 ## 🏗️ Arquitectura
@@ -243,3 +250,93 @@ Construido con:
 ## Support
 
 If you seek consulting, support, or wish to collaborate, please contact us via [boilerplates@brocoders.com](mailto:boilerplates@brocoders.com). For any inquiries regarding boilerplates, feel free to ask on [GitHub Discussions](https://github.com/brocoders/nestjs-boilerplate/discussions) or [Discord](https://discord.com/channels/520622812742811698/1197293125434093701).
+
+---
+
+## ☁️ Migración a AWS (Producción)
+
+### 🏗️ **Arquitectura AWS para Validación de Trabajadores**
+
+ChambaPE está diseñado para migrar completamente a AWS, aprovechando servicios especializados para la nueva funcionalidad de validación:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   ECS Fargate   │    │  Step Functions │    │  Lambda RENIEC  │
+│  (API Principal)│◄───┤  (Orquestación) │───►│  (Validación)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  RDS PostgreSQL │    │   SQS Queues    │    │  Lambda SUNAT   │
+│   (Base Datos)  │    │ (Proc. Async)   │    │  (Validación)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ElastiCache Redis│    │      S3         │    │Lambda Background│
+│    (Cache)      │    │ (Certificados)  │    │  (Cert. Labor)  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### 💰 **Estimación de Costos AWS (Mensual)**
+
+| Servicio | Uso Estimado | Costo Mensual |
+|----------|--------------|---------------|
+| **ECS Fargate** | 2 tareas, 1 vCPU, 2GB RAM | $50-100 |
+| **RDS PostgreSQL** | db.t3.small, Multi-AZ | $50-80 |
+| **Lambda Functions** | 1000 validaciones/mes | $15-25 |
+| **Step Functions** | Orquestación de validaciones | $5-10 |
+| **S3 + CloudWatch** | Storage y logs | $15-25 |
+| **ALB + VPC** | Networking | $25-35 |
+| **SQS + Secrets Manager** | Colas y credenciales | $5-10 |
+| **TOTAL ESTIMADO** | | **$165-285/mes** |
+
+### 🚀 **Comandos de Deployment**
+
+```bash
+# Deployment completo (infraestructura + app + validación)
+./deploy-aws.sh production us-east-1 full
+
+# Solo funciones Lambda de validación
+./deploy-aws.sh production us-east-1 lambdas-only
+
+# Solo aplicación principal
+./deploy-aws.sh production us-east-1 app-only
+
+# Solo infraestructura
+./deploy-aws.sh production us-east-1 infrastructure-only
+```
+
+### 📋 **Servicios AWS Utilizados**
+
+- **🏗️ ECS Fargate** - Contenedores sin gestión de servidores
+- **🗃️ RDS PostgreSQL** - Base de datos principal con Multi-AZ
+- **⚡ Lambda Functions** - Validaciones RENIEC/SUNAT/Certificados
+- **🔄 Step Functions** - Orquestación del flujo de validación
+- **📨 SQS** - Colas de procesamiento asíncrono
+- **📁 S3** - Almacenamiento de certificados laborales
+- **💾 ElastiCache Redis** - Cache y sesiones
+- **📧 SES** - Envío de correos transaccionales
+- **🔐 Secrets Manager** - Gestión segura de credenciales
+- **📊 CloudWatch** - Monitoreo y logs centralizados
+- **🛡️ WAF + Security Groups** - Seguridad multinivel
+
+### 🔒 **Nueva Lógica de Validación de Trabajadores**
+
+El flujo de validación integra servicios oficiales peruanos:
+
+1. **📄 Subida de Certificado** - El trabajador sube su Certificado Único Laboral
+2. **🔍 Validación RENIEC** - Verificación de identidad con datos oficiales
+3. **🏛️ Validación SUNAT** - Verificación de antecedentes tributarios  
+4. **📋 Análisis de Certificado** - AWS Textract extrae y valida información laboral
+5. **✅ Aprobación/Rechazo** - Decisión automática basada en criterios
+6. **📧 Notificación** - Email automático con resultado
+
+### 📚 **Documentación AWS**
+
+- **[Plan de Migración](docs/aws-migration-plan.md)** - Estrategia completa de migración
+- **[Configuración de Producción](docs/aws-production-config.md)** - Variables de entorno y configuración
+- **[Implementación de Lambdas](docs/lambda-functions-implementation.md)** - Código y deployment de validaciones
+- **[Script de Deployment](deploy-aws.sh)** - Automatización del despliegue
+
+---
