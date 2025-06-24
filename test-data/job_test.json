@@ -1,0 +1,12 @@
+{
+  "title": "Limpieza profunda de departamento",
+  "description": "Necesito una limpieza profunda de mi departamento de 3 habitaciones, cocina, 2 baños y sala. Incluye ventanas, pisos y baños.",
+  "latitude": -12.0464,
+  "longitude": -77.0428,
+  "address": "San Isidro, Lima, Peru",
+  "serviceCategoryId": 1,
+  "budget": 150.00,
+  "estimatedDurationHours": 4,
+  "requirements": ["Productos de limpieza incluidos", "Experiencia en limpieza profunda"],
+  "urgency": "medium"
+}

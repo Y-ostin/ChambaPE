@@ -1,0 +1,11 @@
+{
+  "title": "Reparación de tubería en cocina",
+  "description": "Necesito reparar una tubería que está goteando en la cocina. El problema parece ser en la conexión del fregadero.",
+  "serviceCategoryId": 2,
+  "latitude": -12.0464,
+  "longitude": -77.0428,
+  "address": "Av. Javier Prado 456, San Isidro",
+  "estimatedBudget": 150.00,
+  "preferredDateTime": "2025-06-25T09:00:00Z",
+  "notes": "Trabajo urgente, herramientas incluidas"
+}

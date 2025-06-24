@@ -1,0 +1,11 @@
+{
+  "title": "Instalación de lavaplatos",
+  "description": "Necesito instalar un lavaplatos nuevo en mi cocina. Incluye conexión de agua y desagüe.",
+  "serviceCategoryId": 2,
+  "latitude": -12.050000,
+  "longitude": -77.040000, 
+  "address": "Av. Universitaria 456, San Miguel, Lima",
+  "estimatedBudget": 120.00,
+  "preferredDateTime": "2025-06-20T14:00:00.000Z",
+  "notes": "Trabajo para mañana por la tarde si es posible"
+}
