@@ -84,7 +84,7 @@ export class WorkerProfile {
     example: 'https://s3.amazonaws.com/chambaipe/documents/dni_123456.pdf',
     description: 'URL del documento de identidad',
   })
-  dniDocumentUrl?: string;
+  certificatePdfUrl?: string;
 
   @ApiProperty({
     type: String,
