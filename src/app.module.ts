@@ -25,6 +25,7 @@ import { MailerModule } from './mailer/mailer.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './database/mongoose-config.service';
 import { DatabaseConfig } from './database/config/database-config.type';
+import { ValidateModule } from './validate/validate.module';
 
 // <database-block>
 const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
@@ -99,6 +100,7 @@ import { OffersModule } from './offers/offers.module';
     JobsModule,
     MatchingModule,
     OffersModule,
+    ValidateModule,
   ],
 })
 export class AppModule {}

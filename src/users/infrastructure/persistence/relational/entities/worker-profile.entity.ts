@@ -61,7 +61,7 @@ export class WorkerProfileEntity extends EntityRelationalHelper {
   subscriptionExpiresAt: Date | null;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  dniDocumentUrl: string | null;
+  certificatePdfUrl: string | null;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   criminalRecordUrl: string | null;
@@ -94,4 +94,10 @@ export class WorkerProfileEntity extends EntityRelationalHelper {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  dniFrontalUrl: string | null;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  dniPosteriorUrl: string | null;
 }
