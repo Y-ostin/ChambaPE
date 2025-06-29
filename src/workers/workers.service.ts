@@ -74,10 +74,12 @@ export class WorkersService {
       user,
       description: createWorkerDto.description,
       radiusKm: createWorkerDto.radiusKm || 10,
-      dniDocumentUrl: createWorkerDto.dniDocumentUrl,
+      certificatePdfUrl: createWorkerDto.certificatePdfUrl,
       dniNumber: createWorkerDto.dniNumber,
       criminalRecordUrl: createWorkerDto.criminalRecordUrl,
       certificatesUrls: createWorkerDto.certificatesUrls,
+      dniFrontalUrl: createWorkerDto.dniFrontalUrl,
+      dniPosteriorUrl: createWorkerDto.dniPosteriorUrl,
     });
 
     await this.workerProfileRepository.save(workerProfile);
