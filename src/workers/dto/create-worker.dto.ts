@@ -31,12 +31,12 @@ export class CreateWorkerDto {
   radiusKm?: number = 10;
 
   @ApiProperty({
-    description: 'URL del documento DNI',
-    example: 'https://s3.amazonaws.com/docs/dni-12345678.pdf',
+    description: 'URL del PDF del Ministerio de Trabajo',
+    example: 'https://s3.amazonaws.com/docs/certificado-12345678.pdf',
   })
   @IsOptional()
   @IsString()
-  dniDocumentUrl?: string;
+  certificatePdfUrl?: string;
 
   @ApiProperty({
     description: 'Número de DNI',
@@ -108,4 +108,20 @@ export class CreateWorkerDto {
   @Min(-180)
   @Max(180)
   longitude?: number;
+
+  @ApiProperty({
+    description: 'URL de la foto frontal del DNI',
+    example: 'https://s3.amazonaws.com/docs/dni-frontal-12345678.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  dniFrontalUrl?: string;
+
+  @ApiProperty({
+    description: 'URL de la foto posterior del DNI',
+    example: 'https://s3.amazonaws.com/docs/dni-posterior-12345678.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  dniPosteriorUrl?: string;
 }
