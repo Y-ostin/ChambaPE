@@ -166,4 +166,16 @@ export class MailService {
       },
     });
   }
+
+  async sendAlert(mailData: {
+    to: string;
+    subject?: string;
+    text: string;
+  }): Promise<void> {
+    await this.mailerService.sendMail({
+      to: mailData.to,
+      subject: mailData.subject || 'Alerta de antecedentes detectados',
+      text: mailData.text,
+    });
+  }
 }

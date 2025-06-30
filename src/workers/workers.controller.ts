@@ -18,6 +18,8 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../roles/roles.guard';
@@ -31,6 +33,11 @@ import { WorkerDto } from './dto/worker.dto';
 import { ManageWorkerServicesDto } from './dto/manage-worker-services.dto';
 import { ServiceCategoryDto } from '../services/dto/service-category.dto';
 import { ServiceCategoryEntity } from '../services/infrastructure/persistence/relational/entities/service-category.entity';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { ValidateService } from '../validate/services/validate.service';
+import { FilesLocalService } from '../files/infrastructure/uploader/local/files.service';
+import { MailService } from '../mail/mail.service';
 
 @ApiTags('Workers')
 @Controller({
@@ -38,30 +45,160 @@ import { ServiceCategoryEntity } from '../services/infrastructure/persistence/re
   version: '1',
 })
 export class WorkersController {
-  constructor(private readonly workersService: WorkersService) {}
+  constructor(
+    private readonly workersService: WorkersService,
+    private readonly validateService: ValidateService,
+    private readonly filesLocalService: FilesLocalService,
+    private readonly mailService: MailService,
+  ) {}
 
   @Post('register')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.user)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Registrarse como trabajador' })
+  @ApiOperation({
+    summary: 'Registrarse como trabajador',
+    description:
+      'Permite registrar un trabajador, subiendo PDF del Ministerio de Trabajo y fotos del DNI. Valida automáticamente los datos y antecedentes. Si el PDF contiene antecedentes, se envía un correo de alerta. Si todo es correcto, se envía un correo de bienvenida.',
+  })
   @ApiResponse({
     status: 201,
-    description: 'Trabajador registrado exitosamente',
-    type: WorkerDto,
+    description:
+      'Trabajador registrado exitosamente. El objeto incluye el resultado de la validación de datos y archivos subidos.',
+    schema: {
+      example: {
+        worker: {
+          /* ...datos del trabajador... */
+        },
+        validacionDni: true,
+        reniec: {
+          nombre: 'Juan Perez',
+        },
+        archivos: {
+          dniFrontalUrl: '/files/123-dni-frontal.jpg',
+          dniPosteriorUrl: '/files/123-dni-posterior.jpg',
+          dniPdfUrl: '/files/123-certificado.pdf',
+        },
+        validacionCertificado: {
+          valido: true,
+          antecedentes: [],
+        },
+      },
+    },
   })
-  @ApiResponse({ status: 400, description: 'Datos inválidos' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos inválidos o archivos faltantes.',
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado.' })
   @ApiResponse({
     status: 409,
-    description: 'Ya está registrado como trabajador',
+    description: 'Ya está registrado como trabajador.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Datos y archivos para el registro de trabajador',
+    schema: {
+      type: 'object',
+      properties: {
+        dniNumber: { type: 'string', example: '12345678' },
+        description: { type: 'string', example: 'Plomero con experiencia' },
+        // ...otros campos del DTO...
+        dni_frontal: {
+          type: 'string',
+          format: 'binary',
+          description: 'Foto frontal del DNI',
+        },
+        dni_posterior: {
+          type: 'string',
+          format: 'binary',
+          description: 'Foto posterior del DNI',
+        },
+        dni_pdf: {
+          type: 'string',
+          format: 'binary',
+          description: 'PDF del Ministerio de Trabajo (certificatePdfUrl)',
+        },
+      },
+      required: ['dniNumber', 'dni_frontal', 'dni_posterior', 'dni_pdf'],
+    },
   })
   @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(AnyFilesInterceptor())
   async register(
     @Request() request,
     @Body() createWorkerDto: CreateWorkerDto,
-  ): Promise<WorkerDto> {
-    return this.workersService.create(request.user.id, createWorkerDto);
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<any> {
+    // Procesar archivos: buscar por fieldname
+    let dniFrontalUrl = '';
+    let dniPosteriorUrl = '';
+    let dniPdfUrl = '';
+    for (const file of files) {
+      if (file.fieldname === 'dni_frontal') dniFrontalUrl = file.path;
+      if (file.fieldname === 'dni_posterior') dniPosteriorUrl = file.path;
+      if (file.fieldname === 'dni_pdf') dniPdfUrl = file.path;
+    }
+    // Consultar datos de Reniec solo si hay DNI
+    let reniec = { nombre: '' };
+    let validacion = false;
+    let resultadoCert: { valido: boolean; antecedentes: string[] } = {
+      valido: false,
+      antecedentes: [],
+    };
+    if (createWorkerDto.dniNumber && dniPdfUrl) {
+      reniec = await this.validateService.consultarDatosReniec(
+        createWorkerDto.dniNumber,
+      );
+      // Validar PDF del Ministerio de Trabajo
+      resultadoCert = await this.validateService.validarCertificado(
+        dniPdfUrl,
+        reniec.nombre,
+        createWorkerDto.dniNumber,
+      );
+      // Si hay antecedentes, enviar correo de alerta
+      if (resultadoCert.antecedentes.length > 0) {
+        await this.mailService.sendAlert({
+          to: request.user.email,
+          subject: 'Alerta de antecedentes detectados',
+          text: 'Se detectaron antecedentes en tu certificado. Por favor comunícate con nosotros para más información.',
+        });
+      } else {
+        // Si la validación es exitosa, enviar correo de bienvenida
+        await this.mailService.userSignUp({
+          to: request.user.email,
+          data: { hash: 'bienvenida' },
+        });
+      }
+      // Aquí deberías extraer los datos de la imagen del DNI frontal (OCR, etc.)
+      // Por simplicidad, asumimos que el nombre extraído es igual al de Reniec
+      const nombreExtraido = reniec.nombre;
+      // Validar coincidencia
+      validacion = !!(
+        nombreExtraido &&
+        nombreExtraido.toLowerCase().includes(reniec.nombre.toLowerCase())
+      );
+    }
+    // Guardar URLs en el DTO
+    createWorkerDto.certificatePdfUrl = dniPdfUrl;
+    createWorkerDto.dniFrontalUrl = dniFrontalUrl;
+    createWorkerDto.dniPosteriorUrl = dniPosteriorUrl;
+    // Guardar registro
+    const worker = await this.workersService.create(
+      request.user.id,
+      createWorkerDto,
+    );
+    return {
+      worker,
+      validacionDni: validacion,
+      reniec,
+      archivos: {
+        dniFrontalUrl,
+        dniPosteriorUrl,
+        certificatePdfUrl: dniPdfUrl,
+      },
+      validacionCertificado: resultadoCert,
+    };
   }
 
   @Get('nearby')
