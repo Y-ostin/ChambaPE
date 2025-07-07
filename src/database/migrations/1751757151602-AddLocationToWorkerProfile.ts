@@ -17,7 +17,11 @@ export class AddLocationToWorkerProfile1751757151602
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Remover campos de ubicación del worker_profile
-    await queryRunner.query(`ALTER TABLE "worker_profile" DROP COLUMN "longitude"`);
-    await queryRunner.query(`ALTER TABLE "worker_profile" DROP COLUMN "latitude"`);
+    await queryRunner.query(
+      `ALTER TABLE "worker_profile" DROP COLUMN "longitude"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "worker_profile" DROP COLUMN "latitude"`,
+    );
   }
-} 
+}

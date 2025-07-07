@@ -50,7 +50,8 @@ export class RegisterWorkerPublicDto {
 
   @ApiProperty({
     description: 'Descripción del trabajador y sus servicios',
-    example: 'Plomero con 5 años de experiencia en reparaciones residenciales y comerciales',
+    example:
+      'Plomero con 5 años de experiencia en reparaciones residenciales y comerciales',
   })
   @IsOptional()
   @IsString()
@@ -104,4 +105,4 @@ export class RegisterWorkerPublicDto {
   @IsOptional()
   @IsString()
   filesMeta?: string;
-} 
+}

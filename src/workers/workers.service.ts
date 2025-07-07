@@ -36,9 +36,15 @@ export class WorkersService {
   ): Promise<WorkerDto> {
     console.log('🔧 WorkersService.create - userId:', userId);
     console.log('🔧 WorkersService.create - createWorkerDto:', createWorkerDto);
-    console.log('🔧 WorkersService.create - radiusKm tipo:', typeof createWorkerDto.radiusKm);
-    console.log('🔧 WorkersService.create - radiusKm valor:', createWorkerDto.radiusKm);
-    
+    console.log(
+      '🔧 WorkersService.create - radiusKm tipo:',
+      typeof createWorkerDto.radiusKm,
+    );
+    console.log(
+      '🔧 WorkersService.create - radiusKm valor:',
+      createWorkerDto.radiusKm,
+    );
+
     // Verificar si el usuario existe
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -75,7 +81,10 @@ export class WorkersService {
     }
 
     // Crear perfil de trabajador
-    console.log('🔧 Creando perfil de trabajador con radiusKm:', createWorkerDto.radiusKm || 10);
+    console.log(
+      '🔧 Creando perfil de trabajador con radiusKm:',
+      createWorkerDto.radiusKm || 10,
+    );
     const workerProfile = this.workerProfileRepository.create({
       user,
       description: createWorkerDto.description,
@@ -285,9 +294,15 @@ export class WorkersService {
     console.log('📍 WorkersService.updateLocation - userId:', userId);
     console.log('📍 WorkersService.updateLocation - latitude:', latitude);
     console.log('📍 WorkersService.updateLocation - longitude:', longitude);
-    console.log('📍 WorkersService.updateLocation - tipo latitude:', typeof latitude);
-    console.log('📍 WorkersService.updateLocation - tipo longitude:', typeof longitude);
-    
+    console.log(
+      '📍 WorkersService.updateLocation - tipo latitude:',
+      typeof latitude,
+    );
+    console.log(
+      '📍 WorkersService.updateLocation - tipo longitude:',
+      typeof longitude,
+    );
+
     const worker = await this.workerProfileRepository.findOne({
       where: { user: { id: userId } },
     });

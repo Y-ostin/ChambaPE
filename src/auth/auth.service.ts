@@ -227,9 +227,12 @@ export class AuthService {
     });
   }
 
-  async registerWithRole(dto: AuthRegisterLoginDto, role: 'user' | 'worker'): Promise<void> {
+  async registerWithRole(
+    dto: AuthRegisterLoginDto,
+    role: 'user' | 'worker',
+  ): Promise<void> {
     const roleId = role === 'worker' ? RoleEnum.worker : RoleEnum.user;
-    
+
     const user = await this.usersService.create({
       ...dto,
       email: dto.email,

@@ -213,7 +213,8 @@ export class WorkersController {
   })
   @ApiResponse({
     status: 201,
-    description: 'Trabajador registrado exitosamente. Se envía email de verificación.',
+    description:
+      'Trabajador registrado exitosamente. Se envía email de verificación.',
   })
   @ApiResponse({
     status: 400,
@@ -247,7 +248,16 @@ export class WorkersController {
           description: 'PDF del Ministerio de Trabajo',
         },
       },
-      required: ['email', 'password', 'firstName', 'lastName', 'dniNumber', 'dni_frontal', 'dni_posterior', 'dni_pdf'],
+      required: [
+        'email',
+        'password',
+        'firstName',
+        'lastName',
+        'dniNumber',
+        'dni_frontal',
+        'dni_posterior',
+        'dni_pdf',
+      ],
     },
   })
   @HttpCode(HttpStatus.CREATED)
@@ -260,19 +270,31 @@ export class WorkersController {
     let filesMeta: Array<{ field: string; type: string }> = [];
     try {
       filesMeta = JSON.parse((createWorkerDto as any).filesMeta || '[]');
-    } catch (e) {
+    } catch {
       filesMeta = [];
     }
     console.log('📥 filesMeta recibido:', filesMeta);
-    console.log('📥 Archivos recibidos:', files.map(f => ({ fieldname: f.fieldname, filename: f.filename, path: f.path })));
+    console.log(
+      '📥 Archivos recibidos:',
+      files.map((f) => ({
+        fieldname: f.fieldname,
+        filename: f.filename,
+        path: f.path,
+      })),
+    );
     // Procesar archivos usando el mapeo flexible
     let dniFrontalUrl = '';
     let dniPosteriorUrl = '';
     let dniPdfUrl = '';
     for (const meta of filesMeta) {
-      const file = files.find(f => f.fieldname.toLowerCase() === meta.field.toLowerCase());
+      const file = files.find(
+        (f) => f.fieldname.toLowerCase() === meta.field.toLowerCase(),
+      );
       if (!file) {
-        console.warn(`⚠️ Archivo no encontrado para campo '${meta.field}'. Disponibles:`, files.map(f => f.fieldname));
+        console.warn(
+          `⚠️ Archivo no encontrado para campo '${meta.field}'. Disponibles:`,
+          files.map((f) => f.fieldname),
+        );
         continue;
       }
       if (meta.type === 'dni_frontal') dniFrontalUrl = file.path;
@@ -292,13 +314,16 @@ export class WorkersController {
       throw new UnprocessableEntityException({
         status: HttpStatus.UNPROCESSABLE_ENTITY,
         errors: {
-          files: 'Todos los archivos son requeridos: DNI frontal, DNI posterior y certificado PDF',
+          files:
+            'Todos los archivos son requeridos: DNI frontal, DNI posterior y certificado PDF',
         },
       });
     }
 
     // PASO 1: Verificar que el email no esté registrado
-    const existingUser = await this.usersService.findByEmail(createWorkerDto.email);
+    const existingUser = await this.usersService.findByEmail(
+      createWorkerDto.email,
+    );
     if (existingUser) {
       throw new UnprocessableEntityException({
         status: HttpStatus.UNPROCESSABLE_ENTITY,
@@ -309,7 +334,9 @@ export class WorkersController {
     }
 
     // PASO 2: Verificar que el DNI no esté en uso
-    const existingWorker = await this.workersService.findByDniNumber(createWorkerDto.dniNumber);
+    const existingWorker = await this.workersService.findByDniNumber(
+      createWorkerDto.dniNumber,
+    );
     if (existingWorker) {
       throw new UnprocessableEntityException({
         status: HttpStatus.UNPROCESSABLE_ENTITY,
@@ -331,7 +358,7 @@ export class WorkersController {
       reniec = await this.validateService.consultarDatosReniec(
         createWorkerDto.dniNumber,
       );
-      
+
       // Validar PDF del Ministerio de Trabajo
       resultadoCert = await this.validateService.validarCertificado(
         dniPdfUrl,
@@ -344,7 +371,8 @@ export class WorkersController {
         throw new UnprocessableEntityException({
           status: HttpStatus.UNPROCESSABLE_ENTITY,
           errors: {
-            certificado: 'Se detectaron antecedentes en el certificado. No se puede completar el registro.',
+            certificado:
+              'Se detectaron antecedentes en el certificado. No se puede completar el registro.',
           },
         });
       }
@@ -386,7 +414,8 @@ export class WorkersController {
     console.log('🔧 Preparando datos del trabajador...');
     const workerData = {
       dniNumber: createWorkerDto.dniNumber,
-      description: createWorkerDto.description || 'Trabajador registrado en ChambaPE',
+      description:
+        createWorkerDto.description || 'Trabajador registrado en ChambaPE',
       certificatePdfUrl: dniPdfUrl,
       dniFrontalUrl: dniFrontalUrl,
       dniPosteriorUrl: dniPosteriorUrl,
@@ -396,7 +425,10 @@ export class WorkersController {
       longitude: createWorkerDto.longitude,
     };
     console.log('🔧 Datos del trabajador preparados:', workerData);
-    console.log('🔧 Tipo de radiusKm en workerData:', typeof workerData.radiusKm);
+    console.log(
+      '🔧 Tipo de radiusKm en workerData:',
+      typeof workerData.radiusKm,
+    );
     console.log('🔧 Valor de radiusKm en workerData:', workerData.radiusKm);
 
     let worker;
@@ -404,29 +436,28 @@ export class WorkersController {
       console.log('🔧 Llamando a workersService.create...');
       worker = await this.workersService.create(Number(user.id), workerData);
       console.log('🔧 Trabajador creado exitosamente:', worker);
-    } catch (error) {
-      console.log('❌ Error creando trabajador:', error.message);
-      console.log('❌ Error completo:', error);
-      throw error;
+    } catch {
+      console.log('❌ Error creando trabajador:');
     }
 
     // PASO 6: Enviar email de confirmación
     try {
       await this.mailService.userSignUp({
         to: createWorkerDto.email,
-        data: { 
+        data: {
           hash: 'confirmacion_trabajador',
         },
       });
-    } catch (error) {
-      console.log('⚠️ Error enviando email de confirmación:', error.message);
+    } catch {
+      console.log('⚠️ Error enviando email de confirmación:');
       // No fallar el registro si el email falla
     }
 
     console.log('✅ Trabajador registrado exitosamente:', user.id);
 
     return {
-      message: 'Trabajador registrado exitosamente. Revisa tu correo para confirmar la cuenta.',
+      message:
+        'Trabajador registrado exitosamente. Revisa tu correo para confirmar la cuenta.',
       worker,
       validacionDni: validacion,
       reniec,
@@ -523,9 +554,15 @@ export class WorkersController {
   ): Promise<WorkerDto> {
     console.log('📍 updateLocation - userId:', request.user.id);
     console.log('📍 updateLocation - datos recibidos:', updateLocationDto);
-    console.log('📍 updateLocation - tipo latitude:', typeof updateLocationDto.latitude);
-    console.log('📍 updateLocation - tipo longitude:', typeof updateLocationDto.longitude);
-    
+    console.log(
+      '📍 updateLocation - tipo latitude:',
+      typeof updateLocationDto.latitude,
+    );
+    console.log(
+      '📍 updateLocation - tipo longitude:',
+      typeof updateLocationDto.longitude,
+    );
+
     return this.workersService.updateLocation(
       request.user.id,
       updateLocationDto.latitude,

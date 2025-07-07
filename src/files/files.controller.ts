@@ -29,7 +29,8 @@ export class FilesController {
   @Post('upload-registration')
   @ApiOperation({
     summary: 'Subir archivos para registro de trabajador',
-    description: 'Permite subir archivos (DNI frontal, posterior y certificado) sin autenticación para el proceso de registro de trabajador.',
+    description:
+      'Permite subir archivos (DNI frontal, posterior y certificado) sin autenticación para el proceso de registro de trabajador.',
   })
   @ApiResponse({
     status: 201,
@@ -95,15 +96,16 @@ export class FilesController {
       throw new UnprocessableEntityException({
         status: HttpStatus.UNPROCESSABLE_ENTITY,
         errors: {
-          files: 'Se requieren exactamente 3 archivos: DNI frontal, DNI posterior y certificado PDF',
+          files:
+            'Se requieren exactamente 3 archivos: DNI frontal, DNI posterior y certificado PDF',
         },
       });
     }
 
     // Validar nombres de campos
     const requiredFields = ['dni_frontal', 'dni_posterior', 'dni_pdf'];
-    const receivedFields = files.map(f => f.fieldname);
-    
+    const receivedFields = files.map((f) => f.fieldname);
+
     for (const field of requiredFields) {
       if (!receivedFields.includes(field)) {
         throw new UnprocessableEntityException({
@@ -123,7 +125,11 @@ export class FilesController {
         uploadedFiles.push(result.file);
         console.log('✅ Archivo subido:', file.fieldname, result.file.path);
       } catch (error) {
-        console.log('❌ Error subiendo archivo:', file.fieldname, error.message);
+        console.log(
+          '❌ Error subiendo archivo:',
+          file.fieldname,
+          error.message,
+        );
         throw new UnprocessableEntityException({
           status: HttpStatus.UNPROCESSABLE_ENTITY,
           errors: {
@@ -138,4 +144,4 @@ export class FilesController {
       files: uploadedFiles,
     };
   }
-} 
+}

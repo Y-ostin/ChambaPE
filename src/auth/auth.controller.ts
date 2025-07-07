@@ -67,7 +67,8 @@ export class AuthController {
     // Crear usuario con rol user explícitamente
     await this.service.registerWithRole(createUserDto, 'user');
     return {
-      message: 'Cliente registrado exitosamente. Revisa tu correo para confirmar la cuenta.',
+      message:
+        'Cliente registrado exitosamente. Revisa tu correo para confirmar la cuenta.',
     };
   }
 
@@ -192,7 +193,7 @@ export class AuthController {
           </body>
         </html>
       `);
-    } catch (error) {
+    } catch {
       res.send(`
         <html>
           <head>
@@ -264,7 +265,10 @@ export class AuthController {
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
   ): Promise<void> {
-    console.log('🔐 ConfirmEmail endpoint called with hash:', confirmEmailDto.hash);
+    console.log(
+      '🔐 ConfirmEmail endpoint called with hash:',
+      confirmEmailDto.hash,
+    );
     try {
       await this.service.confirmEmail(confirmEmailDto.hash);
       console.log('✅ Email confirmed successfully');
