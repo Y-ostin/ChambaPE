@@ -37,6 +37,8 @@ import { ManageWorkerServicesDto } from './dto/manage-worker-services.dto';
 import { ServiceCategoryDto } from '../services/dto/service-category.dto';
 import { ServiceCategoryEntity } from '../services/infrastructure/persistence/relational/entities/service-category.entity';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
 import { UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { ValidateService } from '../validate/services/validate.service';
 import { FilesLocalService } from '../files/infrastructure/uploader/local/files.service';
@@ -261,7 +263,27 @@ export class WorkersController {
     },
   })
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(AnyFilesInterceptor())
+  @UseInterceptors(
+    AnyFilesInterceptor({
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(
+            null,
+            file.fieldname +
+              '-' +
+              uniqueSuffix +
+              path.extname(file.originalname),
+          );
+        },
+      }),
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB
+      },
+    }),
+  )
   async registerPublic(
     @Body() createWorkerDto: RegisterWorkerPublicDto,
     @UploadedFiles() files: Express.Multer.File[],
@@ -325,12 +347,18 @@ export class WorkersController {
       createWorkerDto.email,
     );
     if (existingUser) {
-      throw new UnprocessableEntityException({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errors: {
-          email: 'Email ya registrado',
-        },
-      });
+      // Si el usuario ya existe, verificar si ya tiene perfil de trabajador
+      const existingWorker = await this.workersService.findByUserId(Number(existingUser.id));
+      if (existingWorker) {
+        throw new UnprocessableEntityException({
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          errors: {
+            email: 'Este email ya tiene un perfil de trabajador registrado',
+          },
+        });
+      }
+      // Si existe pero no tiene perfil de trabajador, continuar con ese usuario
+      console.log('🔍 Usuario existente encontrado, continuando con registro de perfil de trabajador');
     }
 
     // PASO 2: Verificar que el DNI no esté en uso
@@ -394,21 +422,33 @@ export class WorkersController {
       }
     }
 
-    // PASO 4: Crear usuario con rol worker directamente
-    const userData = {
-      email: createWorkerDto.email,
-      password: createWorkerDto.password,
-      firstName: createWorkerDto.firstName,
-      lastName: createWorkerDto.lastName,
-      role: {
-        id: RoleEnum.worker,
-      },
-      status: {
-        id: StatusEnum.inactive, // Requiere confirmación por email
-      },
-    };
-
-    const user = await this.usersService.create(userData);
+    // PASO 4: Usar usuario existente o crear uno nuevo
+    let user;
+    if (existingUser) {
+      // Usar usuario existente y actualizar su rol a worker
+      user = existingUser;
+      await this.usersService.update(Number(user.id), {
+        role: { id: RoleEnum.worker },
+        status: { id: StatusEnum.inactive },
+      });
+      console.log('🔧 Usuario existente actualizado con rol worker');
+    } else {
+      // Crear nuevo usuario con rol worker
+      const userData = {
+        email: createWorkerDto.email,
+        password: createWorkerDto.password,
+        firstName: createWorkerDto.firstName,
+        lastName: createWorkerDto.lastName,
+        role: {
+          id: RoleEnum.worker,
+        },
+        status: {
+          id: StatusEnum.inactive, // Requiere confirmación por email
+        },
+      };
+      user = await this.usersService.create(userData);
+      console.log('🔧 Nuevo usuario creado con rol worker');
+    }
 
     // PASO 5: Crear perfil de trabajador con archivos ya validados
     console.log('🔧 Preparando datos del trabajador...');
@@ -436,8 +476,18 @@ export class WorkersController {
       console.log('🔧 Llamando a workersService.create...');
       worker = await this.workersService.create(Number(user.id), workerData);
       console.log('🔧 Trabajador creado exitosamente:', worker);
-    } catch {
-      console.log('❌ Error creando trabajador:');
+    } catch (error) {
+      console.log('❌ Error creando trabajador:', error);
+      // Si falla la creación del trabajador, eliminar el usuario creado
+      if (!existingUser) {
+        try {
+          await this.usersService.remove(Number(user.id));
+          console.log('🔧 Usuario eliminado debido al error en creación de trabajador');
+        } catch (deleteError) {
+          console.log('⚠️ Error eliminando usuario:', deleteError);
+        }
+      }
+      throw error; // Re-lanzar el error para que se maneje correctamente
     }
 
     // PASO 6: Enviar email de confirmación

@@ -40,3 +40,4 @@ lerna-debug.log*
 /ormconfig.json
 .codegpt
 ./chamba-pe.tar.gz
+./uploads

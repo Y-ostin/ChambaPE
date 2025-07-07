@@ -8,13 +8,14 @@ import {
   Max,
   MinLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class RegisterWorkerPublicDto {
   @ApiProperty({
     description: 'Email del trabajador',
     example: 'juan.perez@email.com',
   })
+  @Transform(({ value }) => value?.trim().toLowerCase())
   @IsEmail()
   email: string;
 
@@ -31,6 +32,7 @@ export class RegisterWorkerPublicDto {
     description: 'Nombre del trabajador',
     example: 'Juan',
   })
+  @Transform(({ value }) => value?.trim())
   @IsString()
   firstName: string;
 
@@ -38,6 +40,7 @@ export class RegisterWorkerPublicDto {
     description: 'Apellido del trabajador',
     example: 'Pérez',
   })
+  @Transform(({ value }) => value?.trim())
   @IsString()
   lastName: string;
 
@@ -45,6 +48,7 @@ export class RegisterWorkerPublicDto {
     description: 'Número de DNI',
     example: '12345678',
   })
+  @Transform(({ value }) => value?.trim())
   @IsString()
   dniNumber: string;
 

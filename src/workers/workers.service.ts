@@ -52,8 +52,11 @@ export class WorkersService {
     });
 
     if (!user) {
+      console.log('❌ Usuario no encontrado con ID:', userId);
       throw new NotFoundException('Usuario no encontrado');
     }
+    
+    console.log('✅ Usuario encontrado:', user.id, user.email);
 
     // Verificar si ya tiene perfil de trabajador
     const existingWorker = await this.workerProfileRepository.findOne({
@@ -61,10 +64,13 @@ export class WorkersService {
     });
 
     if (existingWorker) {
+      console.log('❌ Usuario ya tiene perfil de trabajador:', existingWorker.id);
       throw new ConflictException(
         'El usuario ya está registrado como trabajador',
       );
     }
+    
+    console.log('✅ Usuario no tiene perfil de trabajador, procediendo a crear');
 
     // Verificar categorías de servicio si se proporcionan
     if (createWorkerDto.serviceCategories?.length) {
@@ -85,6 +91,16 @@ export class WorkersService {
       '🔧 Creando perfil de trabajador con radiusKm:',
       createWorkerDto.radiusKm || 10,
     );
+    console.log('🔧 Datos del perfil a crear:', {
+      userId: user.id,
+      description: createWorkerDto.description,
+      radiusKm: createWorkerDto.radiusKm || 10,
+      certificatePdfUrl: createWorkerDto.certificatePdfUrl,
+      dniNumber: createWorkerDto.dniNumber,
+      dniFrontalUrl: createWorkerDto.dniFrontalUrl,
+      dniPosteriorUrl: createWorkerDto.dniPosteriorUrl,
+    });
+    
     const workerProfile = this.workerProfileRepository.create({
       user,
       description: createWorkerDto.description,
@@ -97,7 +113,9 @@ export class WorkersService {
       dniPosteriorUrl: createWorkerDto.dniPosteriorUrl,
     });
 
-    await this.workerProfileRepository.save(workerProfile);
+    console.log('🔧 Perfil de trabajador creado en memoria, guardando...');
+    const savedWorker = await this.workerProfileRepository.save(workerProfile);
+    console.log('✅ Perfil de trabajador guardado exitosamente:', savedWorker.id);
 
     // Crear o actualizar perfil de usuario con ubicación si se proporciona
     if (createWorkerDto.latitude && createWorkerDto.longitude) {
