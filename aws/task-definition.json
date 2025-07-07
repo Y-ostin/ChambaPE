@@ -1,0 +1,108 @@
+{
+  "family": "chambape-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::123456789012:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "chambape-api",
+      "image": "123456789012.dkr.ecr.us-east-2.amazonaws.com/chambape-api:latest",
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "DATABASE_TYPE",
+          "value": "postgres"
+        },
+        {
+          "name": "DATABASE_PORT",
+          "value": "5432"
+        },
+        {
+          "name": "DATABASE_NAME",
+          "value": "chambape"
+        },
+        {
+          "name": "AWS_S3_REGION",
+          "value": "us-east-2"
+        },
+        {
+          "name": "AWS_S3_BUCKET",
+          "value": "chambape-uploads-prod"
+        },
+        {
+          "name": "APP_PORT",
+          "value": "3000"
+        },
+        {
+          "name": "API_PREFIX",
+          "value": "api"
+        },
+        {
+          "name": "FALLBACK_LANGUAGE",
+          "value": "es"
+        },
+        {
+          "name": "APP_FALLBACK_LANGUAGE",
+          "value": "es"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_HOST",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:123456789012:secret:chambape-db-credentials:host"
+        },
+        {
+          "name": "DATABASE_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:123456789012:secret:chambape-db-credentials:username"
+        },
+        {
+          "name": "DATABASE_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:123456789012:secret:chambape-db-credentials:password"
+        },
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:123456789012:secret:chambape-app-secrets:jwt_secret"
+        },
+        {
+          "name": "AWS_ACCESS_KEY_ID",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:123456789012:secret:chambape-aws-credentials:access_key_id"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:123456789012:secret:chambape-aws-credentials:secret_access_key"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/chambape-api",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:3000/api || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

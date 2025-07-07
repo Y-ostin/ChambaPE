@@ -1,0 +1,183 @@
+{
+  "family": "chambape-api",
+  "networkMode": "awsvpc", 
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::637423237539:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "chambape-api",
+      "image": "637423237539.dkr.ecr.us-east-2.amazonaws.com/chambape-api:latest",
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/chambape-api",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "development"
+        },
+        {
+          "name": "PORT",
+          "value": "3000"
+        },
+        {
+          "name": "APP_PORT",
+          "value": "3000"
+        },
+        {
+          "name": "API_PREFIX", 
+          "value": "api"
+        },
+        {
+          "name": "APP_FALLBACK_LANGUAGE",
+          "value": "es"
+        },
+        {
+          "name": "APP_HEADER_LANGUAGE",
+          "value": "x-custom-lang"
+        },
+        {
+          "name": "DATABASE_TYPE",
+          "value": "sqlite"
+        },
+        {
+          "name": "DATABASE_HOST",
+          "value": ":memory:"
+        },
+        {
+          "name": "DATABASE_PORT", 
+          "value": "0"
+        },
+        {
+          "name": "DATABASE_USERNAME",
+          "value": "chambape"
+        },
+        {
+          "name": "DATABASE_PASSWORD",
+          "value": "chambape123"
+        },
+        {
+          "name": "DATABASE_NAME",
+          "value": ":memory:"
+        },
+        {
+          "name": "DATABASE_SYNCHRONIZE",
+          "value": "true"
+        },
+        {
+          "name": "DATABASE_MAX_CONNECTIONS",
+          "value": "100"
+        },
+        {
+          "name": "DATABASE_SSL_ENABLED",
+          "value": "false"
+        },
+        {
+          "name": "DATABASE_REJECT_UNAUTHORIZED",
+          "value": "false"
+        },
+        {
+          "name": "DATABASE_CA",
+          "value": ""
+        },
+        {
+          "name": "DATABASE_KEY",
+          "value": ""
+        },
+        {
+          "name": "DATABASE_CERT",
+          "value": ""
+        },
+        {
+          "name": "JWT_SECRET_KEY",
+          "value": "supersecretkey123456789"
+        },
+        {
+          "name": "JWT_EXPIRATION_TIME",
+          "value": "86400"
+        },
+        {
+          "name": "MAIL_HOST",
+          "value": "localhost"
+        },
+        {
+          "name": "MAIL_PORT",
+          "value": "1025"
+        },
+        {
+          "name": "MAIL_USERNAME",
+          "value": ""
+        },
+        {
+          "name": "MAIL_PASSWORD",
+          "value": ""
+        },
+        {
+          "name": "MAIL_IGNORE_TLS",
+          "value": "true"
+        },
+        {
+          "name": "MAIL_SECURE",
+          "value": "false"
+        },
+        {
+          "name": "MAIL_REQUIRE_TLS",
+          "value": "false"
+        },
+        {
+          "name": "MAIL_DEFAULT_EMAIL",
+          "value": "noreply@chambape.com"
+        },
+        {
+          "name": "MAIL_DEFAULT_NAME",
+          "value": "ChambaPE"
+        },
+        {
+          "name": "MAIL_CLIENT_PORT",
+          "value": "1080"
+        },
+        {
+          "name": "FILE_DRIVER",
+          "value": "local"
+        },
+        {
+          "name": "ACCESS_TOKEN_EXPIRES_IN",
+          "value": "15m"
+        },
+        {
+          "name": "REFRESH_TOKEN_EXPIRES_IN",
+          "value": "30d"
+        },
+        {
+          "name": "AWS_S3_ACCESS_KEY_ID",
+          "value": ""
+        },
+        {
+          "name": "AWS_S3_SECRET_ACCESS_KEY",
+          "value": ""
+        },
+        {
+          "name": "AWS_S3_AWS_DEFAULT_S3_BUCKET",
+          "value": ""
+        },
+        {
+          "name": "AWS_S3_AWS_S3_REGION",
+          "value": "us-east-2"
+        }
+      ]
+    }
+  ]
+}

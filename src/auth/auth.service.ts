@@ -201,7 +201,43 @@ export class AuthService {
         id: RoleEnum.user,
       },
       status: {
-        id: StatusEnum.inactive,
+        id: StatusEnum.inactive, // Volver a inactive para requerir confirmación
+      },
+    });
+
+    const hash = await this.jwtService.signAsync(
+      {
+        confirmEmailUserId: user.id,
+      },
+      {
+        secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
+          infer: true,
+        }),
+        expiresIn: this.configService.getOrThrow('auth.confirmEmailExpires', {
+          infer: true,
+        }),
+      },
+    );
+
+    await this.mailService.userSignUp({
+      to: dto.email,
+      data: {
+        hash,
+      },
+    });
+  }
+
+  async registerWithRole(dto: AuthRegisterLoginDto, role: 'user' | 'worker'): Promise<void> {
+    const roleId = role === 'worker' ? RoleEnum.worker : RoleEnum.user;
+    
+    const user = await this.usersService.create({
+      ...dto,
+      email: dto.email,
+      role: {
+        id: roleId,
+      },
+      status: {
+        id: StatusEnum.inactive, // Volver a inactive para requerir confirmación
       },
     });
 

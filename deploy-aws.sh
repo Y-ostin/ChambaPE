@@ -9,7 +9,7 @@ set -e
 
 # Configuration
 ENVIRONMENT=${1:-production}
-AWS_REGION=${2:-us-east-1}
+AWS_REGION=${2:-us-east-2}
 DEPLOY_TYPE=${3:-full}
 PROJECT_NAME="ChambaPE"
 ECR_REPO_NAME="chambape-api"
@@ -503,7 +503,7 @@ main() {
             ;;
     esac
     
-    log_success "� ChambaPE deployment completed successfully!"
+    log_success "🎉 ChambaPE deployment completed successfully!"
 }
 
 # Handle script interruption

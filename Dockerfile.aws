@@ -1,0 +1,59 @@
+# Dockerfile optimizado para AWS
+FROM node:20-alpine AS base
+
+# Instalar dependencias necesarias
+RUN apk add --no-cache libc6-compat
+
+# Directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+COPY tsconfig*.json ./
+
+# Instalar dependencias (sin scripts de prepare/husky)
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+
+# Etapa de construcción
+FROM base AS builder
+
+# Instalar todas las dependencias (incluyendo devDependencies)
+RUN npm ci
+
+# Copiar código fuente
+COPY . .
+
+# Construir la aplicación con límites de memoria
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
+
+# Etapa de producción
+FROM base AS production
+
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nestjs -u 1001
+
+# Copiar archivos construidos
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
+
+# Crear directorios con permisos correctos
+RUN mkdir -p /app/uploads /app/files && chown -R nestjs:nodejs /app/uploads /app/files && chmod 755 /app/uploads /app/files
+
+# Cambiar al usuario no-root
+USER nestjs
+
+# Exponer puerto
+EXPOSE 3000
+
+# Variables de entorno para AWS
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node dist/health-check.js || exit 1
+
+# Comando de inicio
+CMD ["node", "dist/main"] 

@@ -1,0 +1,216 @@
+{
+  "family": "chambape-api-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "chambape-api",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/chambape-api:latest",
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "APP_PORT",
+          "value": "3000"
+        },
+        {
+          "name": "API_PREFIX",
+          "value": "api"
+        },
+        {
+          "name": "APP_FALLBACK_LANGUAGE",
+          "value": "es"
+        },
+        {
+          "name": "APP_HEADER_LANGUAGE",
+          "value": "x-custom-lang"
+        },
+        {
+          "name": "DATABASE_TYPE",
+          "value": "postgres"
+        },
+        {
+          "name": "DATABASE_SYNCHRONIZE",
+          "value": "false"
+        },
+        {
+          "name": "DATABASE_MAX_CONNECTIONS",
+          "value": "100"
+        },
+        {
+          "name": "DATABASE_SSL_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "DATABASE_REJECT_UNAUTHORIZED",
+          "value": "false"
+        },
+        {
+          "name": "FILE_DRIVER",
+          "value": "s3"
+        },
+        {
+          "name": "AWS_S3_REGION",
+          "value": "us-east-2"
+        },
+        {
+          "name": "MAIL_HOST",
+          "value": "email-smtp.us-east-2.amazonaws.com"
+        },
+        {
+          "name": "MAIL_PORT",
+          "value": "587"
+        },
+        {
+          "name": "MAIL_IGNORE_TLS",
+          "value": "false"
+        },
+        {
+          "name": "MAIL_SECURE",
+          "value": "true"
+        },
+        {
+          "name": "MAIL_REQUIRE_TLS",
+          "value": "true"
+        },
+        {
+          "name": "MAIL_DEFAULT_EMAIL",
+          "value": "noreply@chambape.com"
+        },
+        {
+          "name": "MAIL_DEFAULT_NAME",
+          "value": "ChambaPE"
+        },
+        {
+          "name": "AUTH_JWT_TOKEN_EXPIRES_IN",
+          "value": "15m"
+        },
+        {
+          "name": "AUTH_REFRESH_TOKEN_EXPIRES_IN",
+          "value": "3650d"
+        },
+        {
+          "name": "AUTH_FORGOT_TOKEN_EXPIRES_IN",
+          "value": "30m"
+        },
+        {
+          "name": "AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN",
+          "value": "1d"
+        },
+        {
+          "name": "AWS_DEFAULT_REGION",
+          "value": "us-east-2"
+        },
+        {
+          "name": "AWS_CLOUDWATCH_LOG_GROUP",
+          "value": "/aws/ecs/chambape-api"
+        },
+        {
+          "name": "AWS_CLOUDWATCH_LOG_STREAM",
+          "value": "chambape-api-logs"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_HOST",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/database/credentials:host::"
+        },
+        {
+          "name": "DATABASE_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/database/credentials:username::"
+        },
+        {
+          "name": "DATABASE_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/database/credentials:password::"
+        },
+        {
+          "name": "DATABASE_NAME",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/database/credentials:database::"
+        },
+        {
+          "name": "ACCESS_KEY_ID",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/aws/credentials:access_key_id::"
+        },
+        {
+          "name": "SECRET_ACCESS_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/aws/credentials:secret_access_key::"
+        },
+        {
+          "name": "AWS_DEFAULT_S3_BUCKET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/aws/credentials:s3_bucket::"
+        },
+        {
+          "name": "MAIL_USER",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/mail/credentials:username::"
+        },
+        {
+          "name": "MAIL_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/mail/credentials:password::"
+        },
+        {
+          "name": "AUTH_JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/jwt/secrets:jwt_secret::"
+        },
+        {
+          "name": "AUTH_REFRESH_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/jwt/secrets:refresh_secret::"
+        },
+        {
+          "name": "AUTH_FORGOT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/jwt/secrets:forgot_secret::"
+        },
+        {
+          "name": "AUTH_CONFIRM_EMAIL_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/jwt/secrets:confirm_email_secret::"
+        },
+        {
+          "name": "FRONTEND_DOMAIN",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/app/config:frontend_domain::"
+        },
+        {
+          "name": "BACKEND_DOMAIN",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/app/config:backend_domain::"
+        },
+        {
+          "name": "WORKER_HOST",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:ChambaPE/redis/config:connection_string::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/aws/ecs/chambape-api",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      },
+      "ulimits": [
+        {
+          "name": "nofile",
+          "softLimit": 65536,
+          "hardLimit": 65536
+        }
+      ]
+    }
+  ]
+}

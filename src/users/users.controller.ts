@@ -40,10 +40,7 @@ import { infinityPagination } from '../utils/infinity-pagination';
 @Roles(RoleEnum.admin)
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @ApiTags('Users')
-@Controller({
-  path: 'users',
-  version: '1',
-})
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

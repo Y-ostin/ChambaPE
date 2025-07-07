@@ -1,0 +1,71 @@
+# Configuración para AWS
+NODE_ENV=production
+APP_PORT=3000
+APP_NAME="ChambaPE API"
+API_PREFIX=api
+APP_FALLBACK_LANGUAGE=es
+APP_HEADER_LANGUAGE=x-custom-lang
+FRONTEND_DOMAIN=https://your-flutter-app-domain.com
+BACKEND_DOMAIN=https://your-api-domain.com
+
+# Base de datos PostgreSQL en AWS RDS
+DATABASE_TYPE=postgres
+DATABASE_HOST=your-rds-endpoint.region.rds.amazonaws.com
+DATABASE_PORT=5432
+DATABASE_USERNAME=chambape_user
+DATABASE_PASSWORD=your_secure_password
+DATABASE_NAME=chambape_db
+DATABASE_SYNCHRONIZE=false
+DATABASE_MAX_CONNECTIONS=100
+DATABASE_SSL_ENABLED=true
+DATABASE_REJECT_UNAUTHORIZED=false
+DATABASE_CA=
+DATABASE_KEY=
+DATABASE_CERT=
+DATABASE_URL=postgresql://chambape_user:your_secure_password@your-rds-endpoint.region.rds.amazonaws.com:5432/chambape_db
+
+# Almacenamiento de archivos en AWS S3
+FILE_DRIVER=s3
+ACCESS_KEY_ID=your_aws_access_key_id
+SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_S3_REGION=us-east-2
+AWS_DEFAULT_S3_BUCKET=chambape-uploads
+
+# Configuración de correo (AWS SES)
+MAIL_HOST=email-smtp.us-east-2.amazonaws.com
+MAIL_PORT=587
+MAIL_USER=your_ses_smtp_username
+MAIL_PASSWORD=your_ses_smtp_password
+MAIL_IGNORE_TLS=false
+MAIL_SECURE=true
+MAIL_REQUIRE_TLS=true
+MAIL_DEFAULT_EMAIL=noreply@chambape.com
+MAIL_DEFAULT_NAME=ChambaPE
+MAIL_CLIENT_PORT=1080
+
+# JWT Secrets (generar nuevos para producción)
+AUTH_JWT_SECRET=your_super_secure_jwt_secret_key_here
+AUTH_JWT_TOKEN_EXPIRES_IN=15m
+AUTH_REFRESH_SECRET=your_super_secure_refresh_secret_key_here
+AUTH_REFRESH_TOKEN_EXPIRES_IN=3650d
+AUTH_FORGOT_SECRET=your_super_secure_forgot_secret_key_here
+AUTH_FORGOT_TOKEN_EXPIRES_IN=30m
+AUTH_CONFIRM_EMAIL_SECRET=your_super_secure_confirm_email_secret_key_here
+AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=1d
+
+# OAuth (opcional)
+FACEBOOK_APP_ID=
+FACEBOOK_APP_SECRET=
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+APPLE_APP_AUDIENCE=[]
+
+# Redis para sesiones y cache (AWS ElastiCache)
+WORKER_HOST=redis://your-elasticache-endpoint.region.cache.amazonaws.com:6379/1
+
+# Configuración adicional para AWS
+AWS_REGION=us-east-1
+AWS_CLOUDWATCH_LOG_GROUP=/aws/ecs/chambape-api
+AWS_CLOUDWATCH_LOG_STREAM=chambape-api-logs 

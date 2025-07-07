@@ -22,10 +22,7 @@ import { FilesLocalService } from './files.service';
 import { FileResponseDto } from './dto/file-response.dto';
 
 @ApiTags('Files')
-@Controller({
-  path: 'files',
-  version: '1',
-})
+@Controller('files')
 export class FilesLocalController {
   constructor(private readonly filesService: FilesLocalService) {}
 

@@ -5,8 +5,12 @@ import { WorkersService } from './workers.service';
 import { WorkerProfileEntity } from '../users/infrastructure/persistence/relational/entities/worker-profile.entity';
 import { UserEntity } from '../users/infrastructure/persistence/relational/entities/user.entity';
 import { UserProfileEntity } from '../users/infrastructure/persistence/relational/entities/user-profile.entity';
+import { ValidateModule } from '../validate/validate.module';
 import { ServiceCategoryEntity } from '../services/infrastructure/persistence/relational/entities/service-category.entity';
-
+import { FilesModule } from '../files/files.module';
+import { MailModule } from '../mail/mail.module';
+import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -15,6 +19,11 @@ import { ServiceCategoryEntity } from '../services/infrastructure/persistence/re
       UserProfileEntity,
       ServiceCategoryEntity,
     ]),
+    ValidateModule,
+    FilesModule,
+    MailModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [WorkersController],
   providers: [WorkersService],

@@ -31,11 +31,11 @@ export class MailService {
       ]);
     }
 
-    const url = new URL(
-      this.configService.getOrThrow('app.frontendDomain', {
-        infer: true,
-      }) + '/confirm-email',
-    );
+    // Generar link que funcione tanto en web como en móvil
+    const backendDomain = this.configService.getOrThrow('app.backendDomain', {
+      infer: true,
+    });
+    const url = new URL(`${backendDomain}/auth/confirm-email`);
     url.searchParams.set('hash', mailData.data.hash);
 
     await this.mailerService.sendMail({

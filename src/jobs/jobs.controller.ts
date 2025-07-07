@@ -30,10 +30,7 @@ import { JobDto } from './dto/job.dto';
 import { JobStatus } from './enums/job-status.enum';
 
 @ApiTags('Jobs')
-@Controller({
-  path: 'jobs',
-  version: '1',
-})
+@Controller('jobs')
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
-import { FilesModule } from './files/files.module';
+// import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import databaseConfig from './database/config/database.config';
 import authConfig from './auth/config/auth.config';
@@ -26,6 +26,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './database/mongoose-config.service';
 import { DatabaseConfig } from './database/config/database-config.type';
 import { ValidateModule } from './validate/validate.module';
+import { HealthModule } from './health/health.module';
 
 // <database-block>
 const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
@@ -87,7 +88,7 @@ import { OffersModule } from './offers/offers.module';
       inject: [ConfigService],
     }),
     UsersModule,
-    FilesModule,
+    // FilesModule,
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,
@@ -101,6 +102,7 @@ import { OffersModule } from './offers/offers.module';
     MatchingModule,
     OffersModule,
     ValidateModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

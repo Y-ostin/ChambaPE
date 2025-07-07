@@ -1,0 +1,407 @@
+name: 🚀 ChambaPE - Deploy to AWS
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: chambape-api
+  ECS_SERVICE: chambape-api-service
+  ECS_CLUSTER: chambape-cluster
+
+jobs:
+  # 🧪 Testing Stage
+  test:
+    name: 🧪 Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 📋 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run linting
+        run: npm run lint
+
+      - name: 🧪 Run unit tests
+        run: npm run test
+        env:
+          DATABASE_TYPE: postgres
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_USERNAME: test_user
+          DATABASE_PASSWORD: test_password
+          DATABASE_NAME: test_db
+
+      - name: 🔬 Run e2e tests
+        run: npm run test:e2e
+        env:
+          DATABASE_TYPE: postgres
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_USERNAME: test_user
+          DATABASE_PASSWORD: test_password
+          DATABASE_NAME: test_db
+
+      - name: 📊 Upload test coverage
+        uses: codecov/codecov-action@v3
+        if: success()
+
+  # 🔒 Security Scanning
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run npm audit
+        run: npm audit --audit-level moderate
+
+      - name: 🛡️ Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # 🏗️ Build and Deploy to Development
+  deploy-development:
+    name: 🏗️ Deploy to Development
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: development
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🔑 Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 🏗️ Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: dev-${{ github.sha }}
+        run: |
+          docker build -f Dockerfile.aws -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Deploy to Development ECS
+        run: |
+          # Update task definition with new image
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition chambape-dev-task --query taskDefinition)
+          NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ steps.build-image.outputs.image }}" '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.placementConstraints) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+          echo $NEW_TASK_DEFINITION > task-definition.json
+          
+          # Register new task definition
+          aws ecs register-task-definition --cli-input-json file://task-definition.json
+          
+          # Update service
+          aws ecs update-service \
+            --cluster chambape-dev-cluster \
+            --service chambape-dev-service \
+            --force-new-deployment
+
+      - name: 🏃‍♂️ Run database migrations
+        run: |
+          # Wait for service to be stable
+          aws ecs wait services-stable \
+            --cluster chambape-dev-cluster \
+            --services chambape-dev-service
+          
+          # Run migrations (using ECS run-task)
+          aws ecs run-task \
+            --cluster chambape-dev-cluster \
+            --task-definition chambape-dev-task \
+            --overrides '{"containerOverrides":[{"name":"chambape-api","command":["npm","run","migration:run"]}]}'
+
+  # 🎭 Deploy to Staging
+  deploy-staging:
+    name: 🎭 Deploy to Staging
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    environment: staging
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🔑 Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 🏗️ Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: staging-${{ github.sha }}
+        run: |
+          docker build -f Dockerfile.aws -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:staging-latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:staging-latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: 🎭 Deploy to Staging ECS
+        run: |
+          # Update task definition with new image
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition chambape-staging-task --query taskDefinition)
+          NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ steps.build-image.outputs.image }}" '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.placementConstraints) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+          echo $NEW_TASK_DEFINITION > task-definition.json
+          
+          # Register new task definition
+          aws ecs register-task-definition --cli-input-json file://task-definition.json
+          
+          # Update service
+          aws ecs update-service \
+            --cluster chambape-staging-cluster \
+            --service chambape-staging-service \
+            --force-new-deployment
+
+      - name: 🧪 Run smoke tests
+        run: |
+          # Wait for service to be stable
+          aws ecs wait services-stable \
+            --cluster chambape-staging-cluster \
+            --services chambape-staging-service
+          
+          # Run smoke tests
+          sleep 30
+          curl -f https://staging.chambape.com/health || exit 1
+          curl -f https://staging.chambape.com/api/v1/service-categories || exit 1
+
+      - name: 💬 Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🎭 **Staging Deploy Successful!**\n\n🔗 **Staging URL:** https://staging.chambape.com\n📊 **Image:** `${{ steps.build-image.outputs.image }}`\n\n**Test the following endpoints:**\n- Health: https://staging.chambape.com/health\n- API: https://staging.chambape.com/api/v1/service-categories\n\n**Ready for production deploy!** ✅'
+            })
+
+  # 🚀 Production Deployment
+  deploy-production:
+    name: 🚀 Deploy to Production
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🔑 Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 🏗️ Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: prod-${{ github.sha }}
+        run: |
+          docker build -f Dockerfile.aws -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: 📦 Backup current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.ECS_SERVICE }} \
+            --query taskDefinition > backup-task-definition.json
+
+      - name: 🚀 Deploy to Production ECS
+        id: deploy
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: 🏃‍♂️ Run database migrations
+        run: |
+          # Run migrations in production
+          aws ecs run-task \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --task-definition ${{ env.ECS_SERVICE }} \
+            --overrides '{"containerOverrides":[{"name":"chambape-api","command":["npm","run","migration:run"]}]}'
+
+      - name: 🔍 Verify deployment
+        run: |
+          # Health check
+          sleep 60
+          if ! curl -f https://api.chambape.com/health; then
+            echo "❌ Health check failed! Rolling back..."
+            aws ecs update-service \
+              --cluster ${{ env.ECS_CLUSTER }} \
+              --service ${{ env.ECS_SERVICE }} \
+              --task-definition $(cat backup-task-definition.json | jq -r '.taskDefinitionArn')
+            exit 1
+          fi
+          
+          # API check
+          if ! curl -f https://api.chambape.com/api/v1/service-categories; then
+            echo "⚠️ API check failed but continuing..."
+          fi
+
+  # 🔧 Deploy Lambda Functions
+  deploy-lambdas:
+    name: 🔧 Deploy Lambda Functions
+    needs: [test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        function: [validate-reniec, validate-sunat, validate-background]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 📦 Setup Node.js for Lambda
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: 🏗️ Build Lambda function
+        run: |
+          cd lambda-functions/${{ matrix.function }}
+          npm ci --production
+          zip -r ../../lambda-${{ matrix.function }}.zip .
+
+      - name: 🚀 Deploy Lambda function
+        run: |
+          aws lambda update-function-code \
+            --function-name chambape-${{ matrix.function }} \
+            --zip-file fileb://lambda-${{ matrix.function }}.zip \
+            --region ${{ env.AWS_REGION }}
+
+  # 📊 Post-Deploy Monitoring
+  post-deploy-monitoring:
+    name: 📊 Post-Deploy Monitoring
+    needs: [deploy-production]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 📊 Create deployment marker in CloudWatch
+        run: |
+          aws logs put-events \
+            --log-group-name "/aws/ecs/chambape-api" \
+            --log-stream-name "deployment-events" \
+            --log-events timestamp=$(date +%s000),message="Production deployment completed: ${{ github.sha }}"
+
+      - name: 🔔 Send deployment notification
+        run: |
+          # Notify team about successful deployment
+          echo "🚀 Production deployment completed successfully!"
+          echo "📊 Image: ${{ needs.deploy-production.outputs.image }}"
+          echo "🔗 URL: https://api.chambape.com"
+
+  # 🧹 Cleanup
+  cleanup:
+    name: 🧹 Cleanup Old Images
+    needs: [deploy-production]
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🧹 Cleanup old ECR images
+        run: |
+          # Keep only the latest 10 images
+          aws ecr list-images \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --filter tagStatus=TAGGED \
+            --query 'imageIds[?starts_with(imageTag, `prod-`)]' \
+            --output json | \
+          jq '.[:(-10)][] | select(.imageTag != "latest")' | \
+          jq -s '.' > images-to-delete.json
+          
+          if [ -s images-to-delete.json ] && [ "$(cat images-to-delete.json)" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name ${{ env.ECR_REPOSITORY }} \
+              --image-ids file://images-to-delete.json
+          fi

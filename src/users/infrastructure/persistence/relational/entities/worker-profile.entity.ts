@@ -100,4 +100,10 @@ export class WorkerProfileEntity extends EntityRelationalHelper {
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   dniPosteriorUrl: string | null;
+
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitude: number | null;
+
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  longitude: number | null;
 }
