@@ -40,6 +40,3 @@ lerna-debug.log*
 /ormconfig.json
 .codegpt
 ./chamba-pe.tar.gz
-./chambape-key-final.pem
-./chambape-key-mew.pem
-./chambape-key.pem
