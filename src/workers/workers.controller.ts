@@ -348,26 +348,36 @@ export class WorkersController {
     const existingUser = await this.usersService.findByEmail(
       createWorkerDto.email,
     );
-    if (existingUser) {
-      // Si el usuario ya existe, continuar con ese usuario
-      console.log(
-        '🔍 Usuario existente encontrado, continuando con registro de perfil de trabajador',
-      );
-    }
 
-    // PASO 2: Verificar que el DNI no esté en uso (solo si es un usuario nuevo)
-    if (!existingUser) {
-      const existingWorker = await this.workersService.findByDniNumber(
-        createWorkerDto.dniNumber,
+    if (existingUser) {
+      // Si el usuario ya existe, verificar si ya tiene perfil de trabajador
+      const existingWorker = await this.workersService.findByUserId(
+        Number(existingUser.id),
       );
       if (existingWorker) {
         throw new UnprocessableEntityException({
           status: HttpStatus.UNPROCESSABLE_ENTITY,
           errors: {
-            dniNumber: 'DNI ya registrado',
+            dniNumber: 'Ya existe un perfil de trabajador para este usuario.',
           },
         });
       }
+      console.log(
+        '🔍 Usuario existente encontrado, continuando con registro de perfil de trabajador',
+      );
+    }
+
+    // PASO 2: Verificar que el DNI no esté en uso (en todos los casos)
+    const existingWorkerByDni = await this.workersService.findByDniNumber(
+      createWorkerDto.dniNumber,
+    );
+    if (existingWorkerByDni) {
+      throw new UnprocessableEntityException({
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        errors: {
+          dniNumber: 'DNI ya registrado',
+        },
+      });
     }
 
     // PASO 3: Validar documentos ANTES de crear usuario

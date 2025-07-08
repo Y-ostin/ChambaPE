@@ -1,6 +1,6 @@
 {
   "family": "chambape-api",
-  "networkMode": "awsvpc", 
+  "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "256",
   "memory": "512",
@@ -38,7 +38,7 @@
           "value": "3000"
         },
         {
-          "name": "API_PREFIX", 
+          "name": "API_PREFIX",
           "value": "api"
         },
         {
@@ -58,7 +58,7 @@
           "value": ":memory:"
         },
         {
-          "name": "DATABASE_PORT", 
+          "name": "DATABASE_PORT",
           "value": "0"
         },
         {

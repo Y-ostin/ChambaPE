@@ -5,8 +5,11 @@
   "longitude": -77.0428,
   "address": "San Isidro, Lima, Peru",
   "serviceCategoryId": 1,
-  "budget": 150.00,
+  "budget": 150.0,
   "estimatedDurationHours": 4,
-  "requirements": ["Productos de limpieza incluidos", "Experiencia en limpieza profunda"],
+  "requirements": [
+    "Productos de limpieza incluidos",
+    "Experiencia en limpieza profunda"
+  ],
   "urgency": "medium"
 }

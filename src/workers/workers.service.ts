@@ -138,7 +138,6 @@ export class WorkersService {
       console.log('❌ Error guardando perfil de trabajador:', saveError);
       throw saveError;
     }
-
     // Crear o actualizar perfil de usuario con ubicación si se proporciona
     if (createWorkerDto.latitude && createWorkerDto.longitude) {
       let userProfile = await this.userProfileRepository.findOne({

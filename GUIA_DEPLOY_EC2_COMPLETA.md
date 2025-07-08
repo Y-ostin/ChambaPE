@@ -4,9 +4,10 @@
 
 **Arquitectura**: EC2 + RDS PostgreSQL + S3 Storage  
 **Costo Estimado**: $25-50 USD/mes  
-**Tiempo de Setup**: 20-30 minutos  
+**Tiempo de Setup**: 20-30 minutos
 
 ### 🎯 Servicios AWS que se crearán:
+
 - ✅ **EC2 Instance** (t3.small) - Servidor de aplicación
 - ✅ **RDS PostgreSQL** (db.t3.micro) - Base de datos
 - ✅ **S3 Bucket** - Almacenamiento de archivos
@@ -32,8 +33,9 @@ aws configure
 ```
 
 **Configuración AWS requerida:**
+
 - AWS Access Key ID
-- AWS Secret Access Key  
+- AWS Secret Access Key
 - Default region: `us-east-1`
 - Default output format: `json`
 
@@ -88,7 +90,7 @@ $SG_ID = aws ec2 create-security-group --group-name chambape-sg --description "C
 
 # Reglas de entrada
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 --region us-east-1
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 --region us-east-1  
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 --region us-east-1
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 --region us-east-1
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3000 --cidr 0.0.0.0/0 --region us-east-1
 ```
@@ -144,11 +146,12 @@ aws ec2 run-instances \
 # Obtener endpoints de RDS
 RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier chambape-db --region us-east-1 --query 'DBInstances[0].Endpoint.Address' --output text)
 
-# Obtener IP de EC2  
+# Obtener IP de EC2
 EC2_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=chambape-server" "Name=instance-state-name,Values=running" --region us-east-1 --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
 ```
 
 **Editar .env.production:**
+
 ```env
 DATABASE_HOST=tu-rds-endpoint.region.rds.amazonaws.com
 BACKEND_DOMAIN=http://tu-ec2-ip:3000
@@ -281,13 +284,13 @@ FRONTEND_DOMAIN=https://tu-frontend-domain.com
 
 ## 💰 Costos Estimados
 
-| Servicio | Tipo | Costo/mes |
-|----------|------|-----------|
-| EC2 t3.small | 24/7 | ~$15-20 |
-| RDS db.t3.micro | 24/7 | ~$15-20 |
-| S3 Storage | 10GB | ~$2-5 |
-| Transferencia | 50GB | ~$5-10 |
-| **TOTAL** | | **$37-55** |
+| Servicio        | Tipo | Costo/mes  |
+| --------------- | ---- | ---------- |
+| EC2 t3.small    | 24/7 | ~$15-20    |
+| RDS db.t3.micro | 24/7 | ~$15-20    |
+| S3 Storage      | 10GB | ~$2-5      |
+| Transferencia   | 50GB | ~$5-10     |
+| **TOTAL**       |      | **$37-55** |
 
 ---
 
@@ -330,7 +333,7 @@ aws ec2 describe-security-groups --group-ids TU_SG_ID
 Si tienes problemas:
 
 1. **Ver logs**: `./logs.sh`
-2. **Monitor**: `./monitor.sh` 
+2. **Monitor**: `./monitor.sh`
 3. **Estado AWS**: `.\deploy-ec2-stack.ps1 -Action status`
 4. **Verificar conexiones**: `telnet tu-endpoint puerto`
 

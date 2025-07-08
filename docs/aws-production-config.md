@@ -161,6 +161,7 @@ NOTIFICATION_WORKER_PENDING_TEMPLATE=worker-pending-review
 ## Production Docker Configuration
 
 ### Dockerfile.production
+
 ```dockerfile
 # Multi-stage build for production
 FROM node:18-alpine AS builder
@@ -214,6 +215,7 @@ CMD ["node", "dist/main"]
 ## AWS ECS Task Definition
 
 ### task-definition.json
+
 ```json
 {
   "family": "chambape-api",
@@ -292,6 +294,7 @@ CMD ["node", "dist/main"]
 ## Lambda Functions for Validations
 
 ### RENIEC Validation Function
+
 ```javascript
 // lambda/reniec-validator/index.js
 const AWS = require('aws-sdk');
@@ -301,68 +304,77 @@ const secretsManager = new AWS.SecretsManager();
 const sqs = new AWS.SQS();
 
 exports.handler = async (event) => {
-    try {
-        const { dni, nombres, apellidos } = event;
-        
-        // Get RENIEC credentials from Secrets Manager
-        const secret = await secretsManager.getSecretValue({
-            SecretId: 'ChambaPE/external/apis'
-        }).promise();
-        
-        const credentials = JSON.parse(secret.SecretString);
-        
-        // Validate identity with RENIEC
-        const response = await axios.post(credentials.RENIEC_API_URL, {
-            dni,
-            nombres,
-            apellidos
-        }, {
-            headers: {
-                'Authorization': `Bearer ${credentials.RENIEC_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            timeout: 30000
-        });
-        
-        const isValid = response.data.estado === 'ACTIVO' && 
-                       response.data.nombres === nombres &&
-                       response.data.apellidos === apellidos;
-        
-        // Send result to SQS for processing
-        await sqs.sendMessage({
-            QueueUrl: process.env.SQS_QUEUE_URL,
-            MessageBody: JSON.stringify({
-                type: 'RENIEC_VALIDATION',
-                dni,
-                valid: isValid,
-                details: response.data,
-                timestamp: new Date().toISOString()
-            })
-        }).promise();
-        
-        return {
-            statusCode: 200,
-            body: {
-                identityValid: isValid,
-                details: response.data
-            }
-        };
-        
-    } catch (error) {
-        console.error('RENIEC Validation Error:', error);
-        
-        return {
-            statusCode: 500,
-            body: {
-                identityValid: false,
-                error: error.message
-            }
-        };
-    }
+  try {
+    const { dni, nombres, apellidos } = event;
+
+    // Get RENIEC credentials from Secrets Manager
+    const secret = await secretsManager
+      .getSecretValue({
+        SecretId: 'ChambaPE/external/apis',
+      })
+      .promise();
+
+    const credentials = JSON.parse(secret.SecretString);
+
+    // Validate identity with RENIEC
+    const response = await axios.post(
+      credentials.RENIEC_API_URL,
+      {
+        dni,
+        nombres,
+        apellidos,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${credentials.RENIEC_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000,
+      },
+    );
+
+    const isValid =
+      response.data.estado === 'ACTIVO' &&
+      response.data.nombres === nombres &&
+      response.data.apellidos === apellidos;
+
+    // Send result to SQS for processing
+    await sqs
+      .sendMessage({
+        QueueUrl: process.env.SQS_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          type: 'RENIEC_VALIDATION',
+          dni,
+          valid: isValid,
+          details: response.data,
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .promise();
+
+    return {
+      statusCode: 200,
+      body: {
+        identityValid: isValid,
+        details: response.data,
+      },
+    };
+  } catch (error) {
+    console.error('RENIEC Validation Error:', error);
+
+    return {
+      statusCode: 500,
+      body: {
+        identityValid: false,
+        error: error.message,
+      },
+    };
+  }
 };
 ```
 
 ### SUNAT Validation Function
+
 ```javascript
 // lambda/sunat-validator/index.js
 const AWS = require('aws-sdk');
@@ -372,69 +384,78 @@ const secretsManager = new AWS.SecretsManager();
 const sqs = new AWS.SQS();
 
 exports.handler = async (event) => {
-    try {
-        const { ruc, certificadoUnicoLaboral } = event;
-        
-        // Get SUNAT credentials from Secrets Manager
-        const secret = await secretsManager.getSecretValue({
-            SecretId: 'ChambaPE/external/apis'
-        }).promise();
-        
-        const credentials = JSON.parse(secret.SecretString);
-        
-        // Validate worker status with SUNAT
-        const response = await axios.post(credentials.SUNAT_API_URL, {
-            ruc,
-            certificado: certificadoUnicoLaboral
-        }, {
-            headers: {
-                'Authorization': `Bearer ${credentials.SUNAT_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            timeout: 30000
-        });
-        
-        const isValid = response.data.estado === 'ACTIVO' && 
-                       response.data.tieneAntecedentes === false &&
-                       response.data.trabajadorFormal === true;
-        
-        // Send result to SQS for processing
-        await sqs.sendMessage({
-            QueueUrl: process.env.SQS_QUEUE_URL,
-            MessageBody: JSON.stringify({
-                type: 'SUNAT_VALIDATION',
-                ruc,
-                valid: isValid,
-                details: response.data,
-                timestamp: new Date().toISOString()
-            })
-        }).promise();
-        
-        return {
-            statusCode: 200,
-            body: {
-                sunatValid: isValid,
-                details: response.data
-            }
-        };
-        
-    } catch (error) {
-        console.error('SUNAT Validation Error:', error);
-        
-        return {
-            statusCode: 500,
-            body: {
-                sunatValid: false,
-                error: error.message
-            }
-        };
-    }
+  try {
+    const { ruc, certificadoUnicoLaboral } = event;
+
+    // Get SUNAT credentials from Secrets Manager
+    const secret = await secretsManager
+      .getSecretValue({
+        SecretId: 'ChambaPE/external/apis',
+      })
+      .promise();
+
+    const credentials = JSON.parse(secret.SecretString);
+
+    // Validate worker status with SUNAT
+    const response = await axios.post(
+      credentials.SUNAT_API_URL,
+      {
+        ruc,
+        certificado: certificadoUnicoLaboral,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${credentials.SUNAT_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000,
+      },
+    );
+
+    const isValid =
+      response.data.estado === 'ACTIVO' &&
+      response.data.tieneAntecedentes === false &&
+      response.data.trabajadorFormal === true;
+
+    // Send result to SQS for processing
+    await sqs
+      .sendMessage({
+        QueueUrl: process.env.SQS_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          type: 'SUNAT_VALIDATION',
+          ruc,
+          valid: isValid,
+          details: response.data,
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .promise();
+
+    return {
+      statusCode: 200,
+      body: {
+        sunatValid: isValid,
+        details: response.data,
+      },
+    };
+  } catch (error) {
+    console.error('SUNAT Validation Error:', error);
+
+    return {
+      statusCode: 500,
+      body: {
+        sunatValid: false,
+        error: error.message,
+      },
+    };
+  }
 };
 ```
 
 ## Application Load Balancer Configuration
 
 ### ALB with SSL/TLS
+
 ```terraform
 # alb.tf
 resource "aws_lb" "chambape_alb" {
@@ -443,9 +464,9 @@ resource "aws_lb" "chambape_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = aws_subnet.public_subnets[*].id
-  
+
   enable_deletion_protection = true
-  
+
   tags = {
     Name = "ChambaPE-ALB"
     Environment = "production"
@@ -458,7 +479,7 @@ resource "aws_lb_target_group" "chambape_tg" {
   protocol    = "HTTP"
   vpc_id      = aws_vpc.chambape_vpc.id
   target_type = "ip"
-  
+
   health_check {
     enabled             = true
     healthy_threshold   = 2
@@ -470,7 +491,7 @@ resource "aws_lb_target_group" "chambape_tg" {
     timeout             = 5
     unhealthy_threshold = 2
   }
-  
+
   tags = {
     Name = "ChambaPE-TargetGroup"
     Environment = "production"
@@ -483,7 +504,7 @@ resource "aws_lb_listener" "chambape_https" {
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
   certificate_arn   = aws_acm_certificate.chambape_cert.arn
-  
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.chambape_tg.arn
@@ -495,10 +516,10 @@ resource "aws_lb_listener" "chambape_http_redirect" {
   load_balancer_arn = aws_lb.chambape_alb.arn
   port              = "80"
   protocol          = "HTTP"
-  
+
   default_action {
     type = "redirect"
-    
+
     redirect {
       port        = "443"
       protocol    = "HTTPS"
@@ -514,32 +535,32 @@ resource "aws_lb_listener" "chambape_http_redirect" {
 # outputs.yml
 Outputs:
   LoadBalancerDNS:
-    Description: "Application Load Balancer DNS"
+    Description: 'Application Load Balancer DNS'
     Value: !GetAtt ApplicationLoadBalancer.DNSName
     Export:
-      Name: !Sub "${AWS::StackName}-ALB-DNS"
-  
+      Name: !Sub '${AWS::StackName}-ALB-DNS'
+
   DatabaseEndpoint:
-    Description: "RDS PostgreSQL Endpoint"
+    Description: 'RDS PostgreSQL Endpoint'
     Value: !GetAtt Database.Endpoint.Address
     Export:
-      Name: !Sub "${AWS::StackName}-DB-Endpoint"
-  
+      Name: !Sub '${AWS::StackName}-DB-Endpoint'
+
   RedisEndpoint:
-    Description: "ElastiCache Redis Endpoint"
+    Description: 'ElastiCache Redis Endpoint'
     Value: !GetAtt RedisCluster.RedisEndpoint.Address
     Export:
-      Name: !Sub "${AWS::StackName}-Redis-Endpoint"
-  
+      Name: !Sub '${AWS::StackName}-Redis-Endpoint'
+
   ValidationQueueURL:
-    Description: "SQS Validation Queue URL"
+    Description: 'SQS Validation Queue URL'
     Value: !Ref ValidationQueue
     Export:
-      Name: !Sub "${AWS::StackName}-Validation-Queue"
-  
+      Name: !Sub '${AWS::StackName}-Validation-Queue'
+
   StepFunctionArn:
-    Description: "Step Function for Worker Validation"
+    Description: 'Step Function for Worker Validation'
     Value: !Ref WorkerValidationStateMachine
     Export:
-      Name: !Sub "${AWS::StackName}-StepFunction-ARN"
+      Name: !Sub '${AWS::StackName}-StepFunction-ARN'
 ```

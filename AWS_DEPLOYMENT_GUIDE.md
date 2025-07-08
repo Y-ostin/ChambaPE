@@ -5,12 +5,14 @@ Esta guía te ayudará a desplegar tu aplicación NestJS en AWS y conectar tu fr
 ## 📋 Prerrequisitos
 
 ### 1. Herramientas necesarias
+
 - [AWS CLI](https://aws.amazon.com/cli/) instalado y configurado
 - [Docker](https://www.docker.com/) instalado y ejecutándose
 - [Node.js](https://nodejs.org/) (versión 18 o superior)
 - [Git](https://git-scm.com/) para control de versiones
 
 ### 2. Cuenta de AWS
+
 - Cuenta de AWS activa
 - Permisos de administrador o roles específicos para:
   - ECR (Elastic Container Registry)
@@ -83,6 +85,7 @@ chmod +x deploy-aws.sh
 ```
 
 El script automatizará:
+
 - ✅ Creación del repositorio ECR
 - ✅ Construcción y subida de la imagen Docker
 - ✅ Creación de la infraestructura VPC
@@ -162,13 +165,13 @@ En tu aplicación Flutter, actualiza el archivo `lib/config/api_config.dart`:
 class ApiConfig {
   // Para desarrollo local
   static const String _devApiUrl = 'http://localhost:3000/api';
-  
+
   // Para producción (reemplaza con tu dominio real)
   static const String _prodApiUrl = 'https://your-api-domain.com/api';
-  
+
   static String get baseUrl {
     const environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev');
-    
+
     switch (environment) {
       case 'production':
         return _prodApiUrl;
@@ -200,7 +203,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProxyProvider<AuthProvider, NestJSProvider>(
           create: (context) => NestJSProvider(context.read<AuthProvider>()),
-          update: (context, auth, previous) => 
+          update: (context, auth, previous) =>
             previous ?? NestJSProvider(auth),
         ),
       ],
@@ -290,38 +293,38 @@ name: Deploy to AWS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
-    
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-    
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: chambape-api
-        IMAGE_TAG: latest
-      run: |
-        docker build -f Dockerfile.aws -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    
-    - name: Update ECS service
-      run: |
-        aws ecs update-service --cluster chambape-cluster --service chambape-api-service --force-new-deployment
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: chambape-api
+          IMAGE_TAG: latest
+        run: |
+          docker build -f Dockerfile.aws -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service --cluster chambape-cluster --service chambape-api-service --force-new-deployment
 ```
 
 ## 🧪 Testing
@@ -365,14 +368,17 @@ try {
 ### Problemas comunes:
 
 1. **Error de CORS**
+
    - Verificar configuración CORS en `main.ts`
    - Asegurar que el dominio de Flutter esté en la lista de orígenes permitidos
 
 2. **Error de conexión a la base de datos**
+
    - Verificar configuración de RDS
    - Asegurar que el security group permita conexiones desde ECS
 
 3. **Error de autenticación**
+
    - Verificar configuración de JWT secrets
    - Asegurar que los tokens se estén enviando correctamente
 
@@ -383,6 +389,7 @@ try {
 ## 📞 Soporte
 
 Para obtener ayuda:
+
 1. Revisar los logs de CloudWatch
 2. Verificar la documentación de AWS
 3. Consultar los logs de la aplicación en ECS
@@ -406,4 +413,4 @@ aws ecs update-service \
 
 ---
 
-¡Tu aplicación ChambaPE está lista para producción en AWS! 🎉 
+¡Tu aplicación ChambaPE está lista para producción en AWS! 🎉

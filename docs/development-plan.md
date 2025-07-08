@@ -97,6 +97,7 @@ src/
 ## 🚀 Plan de Desarrollo por Sprints
 
 ### **Sprint 1 (Semana 1): Base y Autenticación**
+
 - [ ] Configurar variables de entorno para Perú
 - [ ] Configurar PostgreSQL con PostGIS
 - [ ] Expandir sistema de autenticación con roles
@@ -104,6 +105,7 @@ src/
 - [ ] Crear middleware de autorización
 
 ### **Sprint 2 (Semana 2): Entidades y Base**
+
 - [ ] Crear todas las entidades de la BD
 - [ ] Configurar migraciones
 - [ ] Crear seeders con datos de prueba
@@ -111,36 +113,42 @@ src/
 - [ ] Implementar módulo de trabajadores
 
 ### **Sprint 3 (Semana 3): Servicios y Trabajos**
+
 - [ ] Implementar módulo de categorías de servicios
 - [ ] Implementar CRUD de trabajos
 - [ ] Sistema de upload de archivos
 - [ ] Validación básica de documentos
 
 ### **Sprint 4 (Semana 4): Matching y Geolocalización**
+
 - [ ] Implementar algoritmo de matching geográfico
 - [ ] Sistema de compatibilidad trabajador-trabajo
 - [ ] API de búsqueda con filtros
 - [ ] Sistema de aplicaciones a trabajos
 
 ### **Sprint 5 (Semana 5): Notificaciones**
+
 - [ ] Implementar WebSockets para tiempo real
 - [ ] Configurar Firebase para push notifications
 - [ ] Sistema de notificaciones por email
 - [ ] Integración con SMS (Twilio)
 
 ### **Sprint 6 (Semana 6): Pagos**
+
 - [ ] Integración con Culqi
 - [ ] Sistema de suscripciones mensuales
 - [ ] Cálculo de comisiones
 - [ ] Gestión de transacciones
 
 ### **Sprint 7 (Semana 7): Calificaciones y Admin**
+
 - [ ] Sistema de ratings bidireccional
 - [ ] Panel de administración básico
 - [ ] Sistema de verificación de trabajadores
 - [ ] Analytics básicos
 
 ### **Sprint 8 (Semana 8): Testing y Optimización**
+
 - [ ] Tests unitarios e integración
 - [ ] Optimización de queries
 - [ ] Documentación API

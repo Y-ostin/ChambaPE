@@ -5,17 +5,20 @@ Esta guía te llevará paso a paso para desplegar tu backend NestJS en AWS usand
 ## 📋 Prerrequisitos
 
 ### 1. Cuenta de AWS
+
 - Cuenta de AWS activa
 - Acceso a la consola de AWS
 - Permisos para crear recursos (EC2, RDS, S3, IAM)
 
 ### 2. Herramientas locales
+
 - **AWS CLI** instalado y configurado
 - **Docker** instalado
 - **Git** para clonar el repositorio
 - **SSH** para conectarse al servidor
 
 ### 3. Configurar AWS CLI
+
 ```bash
 aws configure
 # Ingresa tu Access Key ID
@@ -40,6 +43,7 @@ chmod +x scripts/setup-rds.sh
 ```
 
 **Nota importante:** Guarda la información que te muestra al final:
+
 - Endpoint de la base de datos
 - Usuario y contraseña
 - URL de conexión
@@ -67,6 +71,7 @@ chmod +x scripts/setup-ec2.sh
 ```
 
 **Nota importante:** Guarda:
+
 - IP pública de la instancia
 - Ubicación de la clave privada (.pem)
 
@@ -82,6 +87,7 @@ chmod +x scripts/setup-ec2.sh
    - `CloudWatchLogsFullAccess`
 
 ### 2.2 Obtener credenciales
+
 - Access Key ID
 - Secret Access Key
 
@@ -179,17 +185,19 @@ htop
 Si tienes un dominio:
 
 1. **Configurar DNS:**
+
    - Crear registro A apuntando a la IP de EC2
    - Crear registro CNAME para www
 
 2. **Configurar SSL con Let's Encrypt:**
+
    ```bash
    # Conectarse al servidor
    ssh -i chambape-key.pem ubuntu@TU_IP_EC2
-   
+
    # Instalar Certbot
    sudo apt install certbot python3-certbot-nginx
-   
+
    # Obtener certificado
    sudo certbot --nginx -d tu-dominio.com -d www.tu-dominio.com
    ```
@@ -267,15 +275,18 @@ ssh -i chambape-key.pem ubuntu@TU_IP_EC2 'sudo journalctl -f'
 ### Configuraciones recomendadas
 
 1. **Firewall:**
+
    - Solo puertos 22 (SSH), 80 (HTTP), 443 (HTTPS)
    - Bloquear acceso directo al puerto 3000
 
 2. **SSH:**
+
    - Usar claves SSH en lugar de contraseñas
    - Cambiar puerto SSH por defecto
    - Usar fail2ban
 
 3. **Base de datos:**
+
    - Solo permitir conexiones desde EC2
    - Usar SSL para conexiones
    - Cambiar contraseñas regularmente
@@ -290,11 +301,13 @@ ssh -i chambape-key.pem ubuntu@TU_IP_EC2 'sudo journalctl -f'
 ### Configurar CloudWatch
 
 1. **Métricas básicas:**
+
    - CPU, memoria, disco
    - Latencia de la aplicación
    - Errores HTTP
 
 2. **Logs:**
+
    - Logs de la aplicación
    - Logs de Nginx
    - Logs de Docker
@@ -309,29 +322,32 @@ ssh -i chambape-key.pem ubuntu@TU_IP_EC2 'sudo journalctl -f'
 ### Problemas comunes
 
 1. **La aplicación no responde:**
+
    ```bash
    # Verificar contenedor
    docker ps
    docker logs chambape-api
-   
+
    # Verificar puertos
    netstat -tlnp | grep 3000
    ```
 
 2. **Error de conexión a la base de datos:**
+
    ```bash
    # Verificar conectividad
    telnet tu-rds-endpoint 5432
-   
+
    # Verificar credenciales
    psql -h tu-rds-endpoint -U chambape_user -d chambape_db
    ```
 
 3. **Error de S3:**
+
    ```bash
    # Verificar credenciales AWS
    aws sts get-caller-identity
-   
+
    # Verificar bucket
    aws s3 ls s3://tu-bucket-name
    ```
@@ -341,11 +357,13 @@ ssh -i chambape-key.pem ubuntu@TU_IP_EC2 'sudo journalctl -f'
 ### Para producción con alto tráfico
 
 1. **EC2:**
+
    - Cambiar a instancias más grandes (t3.small, t3.medium)
    - Usar Auto Scaling Groups
    - Implementar Load Balancer
 
 2. **Base de datos:**
+
    - Cambiar a instancias más grandes
    - Implementar read replicas
    - Usar RDS Proxy
@@ -358,6 +376,7 @@ ssh -i chambape-key.pem ubuntu@TU_IP_EC2 'sudo journalctl -f'
 ## 🎉 ¡Listo!
 
 Tu aplicación ChambaPE API está ahora desplegada en AWS con:
+
 - ✅ Base de datos PostgreSQL en RDS
 - ✅ Almacenamiento de archivos en S3
 - ✅ Servidor web en EC2
@@ -369,4 +388,4 @@ Tu aplicación ChambaPE API está ahora desplegada en AWS con:
 **Health Check:** `http://TU_IP_EC2/health`
 **Documentación:** `http://TU_IP_EC2/api/docs`
 
-¡Tu backend está listo para recibir peticiones desde tu aplicación Flutter! 
+¡Tu backend está listo para recibir peticiones desde tu aplicación Flutter!

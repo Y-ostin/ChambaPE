@@ -32,6 +32,7 @@ graph TD
 ```
 
 ### **Estimación de Costos Adicionales por Validación:**
+
 - Lambda executions: ~$15-25/mes (1000 validaciones)
 - Step Functions: ~$5-10/mes
 - SQS: ~$2-5/mes
@@ -41,13 +42,14 @@ graph TD
 ## Phase 1: Core Infrastructure
 
 ### 1. VPC & Networking Setup
+
 ```terraform
 # vpc.tf
 resource "aws_vpc" "chambape_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
   enable_dns_support   = true
-  
+
   tags = {
     Name = "ChambaPE-VPC"
     Environment = "production"
@@ -59,7 +61,7 @@ resource "aws_subnet" "private_subnets" {
   vpc_id            = aws_vpc.chambape_vpc.id
   cidr_block        = "10.0.${count.index + 1}.0/24"
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  
+
   tags = {
     Name = "ChambaPE-Private-${count.index + 1}"
   }
@@ -71,7 +73,7 @@ resource "aws_subnet" "public_subnets" {
   cidr_block              = "10.0.${count.index + 10}.0/24"
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
-  
+
   tags = {
     Name = "ChambaPE-Public-${count.index + 1}"
   }
@@ -79,6 +81,7 @@ resource "aws_subnet" "public_subnets" {
 ```
 
 ### 2. RDS PostgreSQL Setup
+
 ```terraform
 # rds.tf
 resource "aws_db_instance" "chambape_db" {
@@ -91,21 +94,21 @@ resource "aws_db_instance" "chambape_db" {
   db_name                = "chambape_prod"
   username               = "chambape_admin"
   password               = var.db_password
-  
+
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.chambape_db_subnet.name
-  
+
   backup_retention_period = 7
   backup_window          = "03:00-04:00"
   maintenance_window     = "sun:04:00-sun:05:00"
-  
+
   multi_az               = true
   publicly_accessible    = false
   storage_encrypted      = true
-  
+
   skip_final_snapshot = false
   final_snapshot_identifier = "chambape-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
-  
+
   tags = {
     Name = "ChambaPE-Production-DB"
     Environment = "production"
@@ -114,6 +117,7 @@ resource "aws_db_instance" "chambape_db" {
 ```
 
 ### 3. ElastiCache Redis
+
 ```terraform
 # redis.tf
 resource "aws_elasticache_subnet_group" "chambape_redis_subnet" {
@@ -130,7 +134,7 @@ resource "aws_elasticache_cluster" "chambape_redis" {
   port                 = 6379
   subnet_group_name    = aws_elasticache_subnet_group.chambape_redis_subnet.name
   security_group_ids   = [aws_security_group.redis_sg.id]
-  
+
   tags = {
     Name = "ChambaPE-Redis"
     Environment = "production"
@@ -141,22 +145,23 @@ resource "aws_elasticache_cluster" "chambape_redis" {
 ## Phase 2: Application Deployment
 
 ### 1. ECS Fargate Cluster
+
 ```terraform
 # ecs.tf
 resource "aws_ecs_cluster" "chambape_cluster" {
   name = "ChambaPE-Cluster"
-  
+
   configuration {
     execute_command_configuration {
       logging = "OVERRIDE"
-      
+
       log_configuration {
         cloud_watch_encryption_enabled = true
         cloud_watch_log_group_name     = aws_cloudwatch_log_group.ecs_logs.name
       }
     }
   }
-  
+
   tags = {
     Name = "ChambaPE-ECS-Cluster"
     Environment = "production"
@@ -171,12 +176,12 @@ resource "aws_ecs_task_definition" "chambape_app" {
   memory                   = 2048
   execution_role_arn       = aws_iam_role.ecs_execution_role.arn
   task_role_arn           = aws_iam_role.ecs_task_role.arn
-  
+
   container_definitions = jsonencode([
     {
       name  = "chambape-api"
       image = "${aws_ecr_repository.chambape_api.repository_url}:latest"
-      
+
       portMappings = [
         {
           containerPort = 3000
@@ -184,7 +189,7 @@ resource "aws_ecs_task_definition" "chambape_app" {
           protocol      = "tcp"
         }
       ]
-      
+
       environment = [
         {
           name  = "NODE_ENV"
@@ -199,7 +204,7 @@ resource "aws_ecs_task_definition" "chambape_app" {
           value = aws_elasticache_cluster.chambape_redis.cache_nodes[0].address
         }
       ]
-      
+
       secrets = [
         {
           name      = "DATABASE_PASSWORD"
@@ -210,7 +215,7 @@ resource "aws_ecs_task_definition" "chambape_app" {
           valueFrom = aws_secretsmanager_secret.jwt_secret.arn
         }
       ]
-      
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -219,7 +224,7 @@ resource "aws_ecs_task_definition" "chambape_app" {
           awslogs-stream-prefix = "ecs"
         }
       }
-      
+
       healthCheck = {
         command = ["CMD-SHELL", "curl -f http://localhost:3000/api/v1 || exit 1"]
         interval = 30
@@ -229,7 +234,7 @@ resource "aws_ecs_task_definition" "chambape_app" {
       }
     }
   ])
-  
+
   tags = {
     Name = "ChambaPE-Task-Definition"
     Environment = "production"
@@ -240,6 +245,7 @@ resource "aws_ecs_task_definition" "chambape_app" {
 ## Phase 3: Validation Services (RENIEC/SUNAT)
 
 ### 1. Lambda Functions for Validations
+
 ```terraform
 # lambda.tf
 resource "aws_lambda_function" "reniec_validation" {
@@ -250,19 +256,19 @@ resource "aws_lambda_function" "reniec_validation" {
   runtime         = "nodejs18.x"
   timeout         = 30
   memory_size     = 512
-  
+
   vpc_config {
     subnet_ids         = aws_subnet.private_subnets[*].id
     security_group_ids = [aws_security_group.lambda_sg.id]
   }
-  
+
   environment {
     variables = {
       RENIEC_API_URL = var.reniec_api_url
       SQS_QUEUE_URL  = aws_sqs_queue.validation_queue.url
     }
   }
-  
+
   tags = {
     Name = "ChambaPE-RENIEC-Validator"
     Environment = "production"
@@ -277,19 +283,19 @@ resource "aws_lambda_function" "sunat_validation" {
   runtime         = "nodejs18.x"
   timeout         = 30
   memory_size     = 512
-  
+
   vpc_config {
     subnet_ids         = aws_subnet.private_subnets[*].id
     security_group_ids = [aws_security_group.lambda_sg.id]
   }
-  
+
   environment {
     variables = {
       SUNAT_API_URL = var.sunat_api_url
       SQS_QUEUE_URL = aws_sqs_queue.validation_queue.url
     }
   }
-  
+
   tags = {
     Name = "ChambaPE-SUNAT-Validator"
     Environment = "production"
@@ -304,14 +310,14 @@ resource "aws_lambda_function" "validate_reniec" {
   source_code_hash = filebase64sha256("lambda-reniec.zip")
   runtime         = "nodejs18.x"
   timeout         = 30
-  
+
   environment {
     variables = {
       RENIEC_API_URL = "https://api.reniec.gob.pe"
       RENIEC_API_KEY_SECRET = aws_secretsmanager_secret.reniec_api_key.name
     }
   }
-  
+
   vpc_config {
     subnet_ids         = aws_subnet.private_subnets[*].id
     security_group_ids = [aws_security_group.lambda_sg.id]
@@ -326,14 +332,14 @@ resource "aws_lambda_function" "validate_sunat" {
   source_code_hash = filebase64sha256("lambda-sunat.zip")
   runtime         = "nodejs18.x"
   timeout         = 30
-  
+
   environment {
     variables = {
       SUNAT_API_URL = "https://api.sunat.gob.pe"
       SUNAT_API_KEY_SECRET = aws_secretsmanager_secret.sunat_api_key.name
     }
   }
-  
+
   vpc_config {
     subnet_ids         = aws_subnet.private_subnets[*].id
     security_group_ids = [aws_security_group.lambda_sg.id]
@@ -348,14 +354,14 @@ resource "aws_lambda_function" "validate_background" {
   source_code_hash = filebase64sha256("lambda-background.zip")
   runtime         = "nodejs18.x"
   timeout         = 60
-  
+
   environment {
     variables = {
       DATABASE_URL = "postgresql://${aws_db_instance.chambape_db.username}:${aws_secretsmanager_secret_version.db_password.secret_string}@${aws_db_instance.chambape_db.endpoint}:${aws_db_instance.chambape_db.port}/${aws_db_instance.chambape_db.db_name}"
       S3_BUCKET = aws_s3_bucket.chambape_certificates.bucket
     }
   }
-  
+
   vpc_config {
     subnet_ids         = aws_subnet.private_subnets[*].id
     security_group_ids = [aws_security_group.lambda_sg.id]
@@ -364,6 +370,7 @@ resource "aws_lambda_function" "validate_background" {
 ```
 
 ### 2. SQS Queue for Validation Processing
+
 ```terraform
 # sqs.tf
 resource "aws_sqs_queue" "validation_queue" {
@@ -372,12 +379,12 @@ resource "aws_sqs_queue" "validation_queue" {
   max_message_size          = 262144
   message_retention_seconds = 1209600  # 14 days
   receive_wait_time_seconds = 10
-  
+
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.validation_dlq.arn
     maxReceiveCount     = 3
   })
-  
+
   tags = {
     Name = "ChambaPE-Validation-Queue"
     Environment = "production"
@@ -386,7 +393,7 @@ resource "aws_sqs_queue" "validation_queue" {
 
 resource "aws_sqs_queue" "validation_dlq" {
   name = "ChambaPE-Validation-DLQ"
-  
+
   tags = {
     Name = "ChambaPE-Validation-DLQ"
     Environment = "production"
@@ -399,7 +406,7 @@ resource "aws_sqs_queue" "worker_validation_queue" {
   max_message_size           = 262144
   message_retention_seconds  = 1209600  # 14 days
   visibility_timeout_seconds = 300
-  
+
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.worker_validation_dlq.arn
     maxReceiveCount     = 3
@@ -412,12 +419,13 @@ resource "aws_sqs_queue" "worker_validation_dlq" {
 ```
 
 ### 3. Step Functions for Validation Orchestration
+
 ```terraform
 # step_functions.tf
 resource "aws_sfn_state_machine" "worker_validation" {
   name     = "ChambaPE-Worker-Validation"
   role_arn = aws_iam_role.step_function_role.arn
-  
+
   definition = jsonencode({
     Comment = "ChambaPE Worker Validation Process"
     StartAt = "ValidateIdentity"
@@ -490,7 +498,7 @@ resource "aws_sfn_state_machine" "worker_validation" {
       }
     }
   })
-  
+
   tags = {
     Name = "ChambaPE-Worker-Validation"
     Environment = "production"
@@ -655,12 +663,13 @@ resource "aws_sfn_state_machine" "worker_validation" {
 ## Security & Secrets Management
 
 ### 1. Secrets Manager
+
 ```terraform
 # secrets.tf
 resource "aws_secretsmanager_secret" "database_credentials" {
   name = "ChambaPE/database/credentials"
   description = "Database credentials for ChambaPE"
-  
+
   tags = {
     Name = "ChambaPE-DB-Credentials"
     Environment = "production"
@@ -670,7 +679,7 @@ resource "aws_secretsmanager_secret" "database_credentials" {
 resource "aws_secretsmanager_secret" "jwt_secrets" {
   name = "ChambaPE/jwt/secrets"
   description = "JWT secrets for ChambaPE"
-  
+
   tags = {
     Name = "ChambaPE-JWT-Secrets"
     Environment = "production"
@@ -680,7 +689,7 @@ resource "aws_secretsmanager_secret" "jwt_secrets" {
 resource "aws_secretsmanager_secret" "external_apis" {
   name = "ChambaPE/external/apis"
   description = "External API credentials (RENIEC, SUNAT)"
-  
+
   tags = {
     Name = "ChambaPE-External-APIs"
     Environment = "production"
@@ -701,12 +710,13 @@ resource "aws_secretsmanager_secret" "sunat_api_key" {
 ## Monitoring & Logging
 
 ### 1. CloudWatch
+
 ```terraform
 # monitoring.tf
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name = "/ecs/chambape-api"
   retention_in_days = 30
-  
+
   tags = {
     Name = "ChambaPE-ECS-Logs"
     Environment = "production"
@@ -716,7 +726,7 @@ resource "aws_cloudwatch_log_group" "ecs_logs" {
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name = "/aws/lambda/chambape-validations"
   retention_in_days = 14
-  
+
   tags = {
     Name = "ChambaPE-Lambda-Logs"
     Environment = "production"
@@ -735,7 +745,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   threshold           = "80"
   alarm_description   = "This metric monitors ECS CPU utilization"
   alarm_actions       = [aws_sns_topic.alerts.arn]
-  
+
   dimensions = {
     ClusterName = aws_ecs_cluster.chambape_cluster.name
     ServiceName = aws_ecs_service.chambape_service.name
@@ -746,6 +756,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
 ## Cost Optimization
 
 ### 1. Auto Scaling
+
 ```terraform
 # autoscaling.tf
 resource "aws_appautoscaling_target" "ecs_target" {
@@ -762,7 +773,7 @@ resource "aws_appautoscaling_policy" "ecs_scale_up" {
   resource_id        = aws_appautoscaling_target.ecs_target.resource_id
   scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
   service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
-  
+
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
