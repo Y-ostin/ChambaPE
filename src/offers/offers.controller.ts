@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../roles/roles.guard';
@@ -29,6 +30,9 @@ import { OfferDto } from './dto/offer.dto';
 import { AcceptOfferDto } from './dto/accept-offer.dto';
 import { RejectOfferDto } from './dto/reject-offer.dto';
 import { OfferStatus } from './enums/offer-status.enum';
+import { CreateServiceRequestDto } from './dto/create-service-request.dto';
+import { JobsService } from '../jobs/jobs.service';
+import { CreateJobDto } from '../jobs/dto/create-job.dto';
 
 @ApiTags('Offers')
 @Controller({
@@ -36,7 +40,10 @@ import { OfferStatus } from './enums/offer-status.enum';
   version: '1',
 })
 export class OffersController {
-  constructor(private readonly offersService: OffersService) {}
+  constructor(
+    private readonly offersService: OffersService,
+    private readonly jobsService: JobsService,
+  ) {}
 
   @Get('my-offers')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -133,5 +140,35 @@ export class OffersController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<OfferDto> {
     return this.offersService.completeOffer(id);
+  }
+
+  @Post('request')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(RoleEnum.user)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Publicar solicitud de servicio (cliente)' })
+  @ApiBody({ type: CreateServiceRequestDto })
+  @ApiResponse({ status: 201, description: 'Solicitud creada', type: OfferDto })
+  async createServiceRequest(
+    @Request() req,
+    @Body() dto: CreateServiceRequestDto,
+  ): Promise<OfferDto | { message: string }> {
+    // Crear trabajo usando JobsService
+    const jobDto = await this.jobsService.create(req.user.id, {
+      title: dto.title,
+      description: dto.description,
+      address: dto.address,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+      serviceCategoryId: dto.serviceCategoryId,
+      estimatedBudget: dto.estimatedBudget,
+      preferredDateTime: dto.preferredDateTime,
+    } as CreateJobDto);
+
+    // Crear oferta automática (ya llamado dentro de JobsService.create), devolver mensaje
+    return {
+      message: 'Solicitud creada exitosamente',
+      jobId: jobDto.id,
+    } as any;
   }
 }

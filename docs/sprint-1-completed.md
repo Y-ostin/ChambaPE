@@ -3,6 +3,7 @@
 ## ✅ **LOGROS PRINCIPALES - BACKEND SETUP**
 
 ### 🏗️ **Entidades TypeORM Creadas (100%)**
+
 - [x] **UserProfileEntity** - Perfiles de usuarios contratantes
 - [x] **WorkerProfileEntity** - Perfiles de trabajadores con verificación
 - [x] **ServiceCategoryEntity** - Categorías de servicios
@@ -12,17 +13,20 @@
 - [x] **PaymentEntity** - Sistema de pagos y transacciones
 
 ### 📊 **Base de Datos PostgreSQL (100%)**
+
 - [x] **Migración Completa** - `CreateChambaPETables1718769600000`
 - [x] **Índices Optimizados** - Para geolocalización y búsquedas
 - [x] **Foreign Keys** - Relaciones entre todas las entidades
 - [x] **Constraints** - Validaciones a nivel de BD
 
 ### 🌱 **Seeds/Datos Iniciales (100%)**
+
 - [x] **Roles Expandidos** - USER, WORKER, ADMIN, SUPER_ADMIN
 - [x] **12 Categorías de Servicios** - Desde limpieza hasta tecnología
 - [x] **Service Category Seeder** - Datos listos para producción
 
 ### 🔧 **Configuración Técnica (100%)**
+
 - [x] **Variables de Entorno** - Configuración específica para Perú
 - [x] **TypeORM DataSource** - Configurado para detectar entidades automáticamente
 - [x] **Prettier/Linting** - Código formateado y consistente
@@ -77,39 +81,43 @@ src/
 
 ## 📋 **TABLAS CREADAS EN BASE DE DATOS**
 
-| Tabla | Propósito | Características |
-|-------|-----------|-----------------|
-| `user_profile` | Perfiles de usuarios contratantes | Geolocalización, ratings |
-| `worker_profile` | Perfiles de trabajadores | Verificación, documentos, suscripción |
-| `service_category` | Categorías de servicios | 12 categorías iniciales |
-| `job` | Trabajos solicitados | Geolocalización, presupuesto, fotos |
-| `job_match` | Matches automáticos | Distancia, compatibilidad, expiración |
-| `rating` | Calificaciones | Sistema bidireccional 1-5 estrellas |
-| `payment` | Pagos y transacciones | Comisiones, métodos de pago |
+| Tabla              | Propósito                         | Características                       |
+| ------------------ | --------------------------------- | ------------------------------------- |
+| `user_profile`     | Perfiles de usuarios contratantes | Geolocalización, ratings              |
+| `worker_profile`   | Perfiles de trabajadores          | Verificación, documentos, suscripción |
+| `service_category` | Categorías de servicios           | 12 categorías iniciales               |
+| `job`              | Trabajos solicitados              | Geolocalización, presupuesto, fotos   |
+| `job_match`        | Matches automáticos               | Distancia, compatibilidad, expiración |
+| `rating`           | Calificaciones                    | Sistema bidireccional 1-5 estrellas   |
+| `payment`          | Pagos y transacciones             | Comisiones, métodos de pago           |
 
 ## 🎯 **FUNCIONALIDADES TÉCNICAS IMPLEMENTADAS**
 
 ### 🔍 **Geolocalización**
+
 - Campos `latitude` y `longitude` en UserProfile y Job
 - Índices espaciales para búsquedas rápidas por ubicación
 - Cálculo de distancia en JobMatch
 
 ### 💰 **Sistema de Pagos**
+
 - Soporte para múltiples métodos (tarjetas, Yape, Plin)
 - Cálculo automático de comisiones
 - Estados de transacción completos
 
 ### 👥 **Sistema de Roles Expandido**
+
 ```typescript
 enum RoleEnum {
-  'admin' = 1,        // Administrador básico
-  'user' = 2,         // Usuario que contrata
-  'worker' = 3,       // Trabajador que ofrece servicios
-  'super_admin' = 4,  // Super administrador
+  'admin' = 1, // Administrador básico
+  'user' = 2, // Usuario que contrata
+  'worker' = 3, // Trabajador que ofrece servicios
+  'super_admin' = 4, // Super administrador
 }
 ```
 
 ### 📄 **Gestión de Documentos**
+
 - URLs para DNI, antecedentes penales
 - Array de certificados en JSON
 - Campo de verificación de trabajadores
@@ -132,6 +140,7 @@ enum RoleEnum {
 ## 🔄 **PRÓXIMOS PASOS - Sprint 2**
 
 ### 1. Configurar Base de Datos Local
+
 ```bash
 # Instalar PostgreSQL y crear la base de datos
 createdb chambadb
@@ -144,18 +153,21 @@ npm run seed:run:relational
 ```
 
 ### 2. Crear Módulos de Servicio
+
 - [ ] Módulo Workers (controllers, services, DTOs)
 - [ ] Módulo Services (CRUD categorías)
 - [ ] Módulo Jobs (crear, buscar, asignar)
 - [ ] Módulo Matching (algoritmo geográfico)
 
 ### 3. Implementar APIs REST
+
 - [ ] CRUD usuarios y perfiles
 - [ ] Sistema de autenticación expandido
 - [ ] Endpoints de geolocalización
 - [ ] API de matching trabajador-trabajo
 
 ### 4. Sistema de Notificaciones
+
 - [ ] WebSockets para tiempo real
 - [ ] Push notifications (Firebase)
 - [ ] Email notifications

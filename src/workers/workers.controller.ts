@@ -348,7 +348,9 @@ export class WorkersController {
     );
     if (existingUser) {
       // Si el usuario ya existe, verificar si ya tiene perfil de trabajador
-      const existingWorker = await this.workersService.findByUserId(Number(existingUser.id));
+      const existingWorker = await this.workersService.findByUserId(
+        Number(existingUser.id),
+      );
       if (existingWorker) {
         throw new UnprocessableEntityException({
           status: HttpStatus.UNPROCESSABLE_ENTITY,
@@ -358,7 +360,9 @@ export class WorkersController {
         });
       }
       // Si existe pero no tiene perfil de trabajador, continuar con ese usuario
-      console.log('🔍 Usuario existente encontrado, continuando con registro de perfil de trabajador');
+      console.log(
+        '🔍 Usuario existente encontrado, continuando con registro de perfil de trabajador',
+      );
     }
 
     // PASO 2: Verificar que el DNI no esté en uso
@@ -482,7 +486,9 @@ export class WorkersController {
       if (!existingUser) {
         try {
           await this.usersService.remove(Number(user.id));
-          console.log('🔧 Usuario eliminado debido al error en creación de trabajador');
+          console.log(
+            '🔧 Usuario eliminado debido al error en creación de trabajador',
+          );
         } catch (deleteError) {
           console.log('⚠️ Error eliminando usuario:', deleteError);
         }

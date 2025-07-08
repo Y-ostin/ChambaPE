@@ -3,12 +3,14 @@
 ## ✅ COMPLETADO - Sprint 1 (Parcial)
 
 ### 📋 Arquitectura y Diseño
+
 - [x] **Esquema de Base de Datos** definido para ChambaPE
 - [x] **Plan de Desarrollo** por sprints estructurado
 - [x] **Variables de Entorno** configuradas para Perú
 - [x] **Sistema de Roles** expandido (admin, user, worker, super_admin)
 
 ### 🏗️ Entidades del Dominio Creadas
+
 - [x] **UserProfile** - Perfiles de usuarios que contratan
 - [x] **WorkerProfile** - Perfiles de trabajadores con verificación
 - [x] **ServiceCategory** - Categorías de servicios (limpieza, plomería, etc.)
@@ -19,6 +21,7 @@
 - [x] **Payment** - Sistema de pagos y transacciones
 
 ### 🔧 Configuración Base
+
 - [x] **Prettier** configurado con LF para evitar errores de formato
 - [x] **Estructura de carpetas** organizada por módulos
 - [x] **Enums** para estados de trabajos, pagos y aplicaciones
@@ -57,6 +60,7 @@ src/
 ## 🚀 SIGUIENTES PASOS - Sprint 1 Continuación
 
 ### 1. Configuración de Base de Datos (PostgreSQL + PostGIS)
+
 ```bash
 # Instalar dependencias para geolocalización
 npm install @nestjs/typeorm typeorm pg postgis
@@ -64,16 +68,19 @@ npm install --save-dev @types/pg
 ```
 
 ### 2. Crear Entidades TypeORM
+
 - Convertir las clases de dominio a entidades TypeORM
 - Configurar relaciones entre entidades
 - Agregar índices para geolocalización
 
 ### 3. Migraciones de Base de Datos
+
 - Crear migraciones para todas las nuevas tablas
 - Configurar PostGIS para funciones de geolocalización
 - Crear índices espaciales
 
 ### 4. Expandir Sistema de Autenticación
+
 - Agregar campos específicos de ChambaPE al JWT
 - Middleware para verificación de trabajadores
 - Middleware para verificación de suscripciones
@@ -81,12 +88,14 @@ npm install --save-dev @types/pg
 ## 🎯 FUNCIONALIDADES CLAVE DE NEGOCIO
 
 ### Para Usuarios (Contratantes)
+
 1. ✅ Registro y perfil básico
 2. ⏳ Publicar trabajos con ubicación
 3. ⏳ Ver trabajadores disponibles
 4. ⏳ Calificar trabajadores
 
 ### Para Trabajadores
+
 1. ✅ Registro y perfil con documentos
 2. ⏳ Sistema de verificación de documentos
 3. ⏳ Configurar disponibilidad diaria
@@ -94,12 +103,14 @@ npm install --save-dev @types/pg
 5. ⏳ Suscripción mensual
 
 ### Sistema de Matching
+
 1. ✅ Modelo de datos definido
 2. ⏳ Algoritmo de geolocalización (radio 10km)
 3. ⏳ Sistema de notificaciones push
 4. ⏳ Expiración de matches (15 minutos)
 
 ### Pagos y Comisiones
+
 1. ✅ Modelo de datos definido
 2. ⏳ Integración con Culqi (Perú)
 3. ⏳ Cálculo automático de comisiones (10%)
@@ -108,17 +119,20 @@ npm install --save-dev @types/pg
 ## 🛠️ COMANDOS PARA CONTINUAR
 
 ### Instalar dependencias de geolocalización
+
 ```bash
 npm install @nestjs/typeorm typeorm pg
 npm install --save-dev @types/pg
 ```
 
 ### Crear primera migración
+
 ```bash
 npm run migration:generate -- -n CreateChambaPETables
 ```
 
 ### Ejecutar tests
+
 ```bash
 npm run test
 ```

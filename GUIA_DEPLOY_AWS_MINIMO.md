@@ -3,6 +3,7 @@
 ## 🎯 Resumen Ejecutivo - Deploy en 3 Pasos
 
 ### ⚡ Opción Rápida (Recomendada)
+
 ```powershell
 # 1. Setup completo automático
 .\deploy-complete.ps1 -Action full
@@ -15,13 +16,15 @@
 ```
 
 ### 📊 Costo Estimado: $50-100/mes
+
 - **ECS Fargate**: $20-40/mes
-- **RDS t3.micro**: $15-25/mes  
+- **RDS t3.micro**: $15-25/mes
 - **ALB**: $18/mes
 - **S3**: $5-10/mes
 - **Transferencia**: $5-15/mes
 
 ### 🏗️ Servicios Desplegados
+
 - ✅ **API Backend** en ECS Fargate (auto-escalable)
 - ✅ **Base de Datos** PostgreSQL en RDS
 - ✅ **Load Balancer** con SSL/HTTPS
@@ -34,6 +37,7 @@
 ## 📋 Arquitectura Mínima Esencial
 
 ### Stack de Servicios AWS Requeridos:
+
 1. **ECS Fargate** - Contenedores sin servidor
 2. **RDS PostgreSQL** - Base de datos
 3. **Application Load Balancer** - Balanceador de carga
@@ -49,6 +53,7 @@
 ## 🛠️ Opción 1: Deploy Rápido con CDK (Recomendado)
 
 ### Prerequisitos:
+
 ```powershell
 # Instalar AWS CDK
 npm install -g aws-cdk
@@ -79,45 +84,48 @@ export class ChambaPeStack extends cdk.Stack {
     // VPC
     const vpc = new ec2.Vpc(this, 'ChambaPeVPC', {
       maxAzs: 2,
-      natGateways: 1
+      natGateways: 1,
     });
 
     // RDS Database
     const database = new rds.DatabaseInstance(this, 'ChambaPeDB', {
       engine: rds.DatabaseInstanceEngine.postgres({
-        version: rds.PostgresEngineVersion.VER_15
+        version: rds.PostgresEngineVersion.VER_15,
       }),
-      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T3,
+        ec2.InstanceSize.MICRO,
+      ),
       vpc,
       credentials: rds.Credentials.fromGeneratedSecret('postgres'),
       databaseName: 'chambape',
       backupRetention: cdk.Duration.days(7),
       deleteAutomatedBackups: false,
-      deletionProtection: true
+      deletionProtection: true,
     });
 
     // S3 Bucket
     const bucket = new s3.Bucket(this, 'ChambaPeUploads', {
       bucketName: 'chambape-uploads-prod',
       versioned: true,
-      encryption: s3.BucketEncryption.S3_MANAGED
+      encryption: s3.BucketEncryption.S3_MANAGED,
     });
 
     // ECR Repository
     const repository = new ecr.Repository(this, 'ChambaPeECR', {
-      repositoryName: 'chambape-api'
+      repositoryName: 'chambape-api',
     });
 
     // ECS Cluster
     const cluster = new ecs.Cluster(this, 'ChambaPeCluster', {
       vpc,
-      clusterName: 'chambape-cluster'
+      clusterName: 'chambape-cluster',
     });
 
     // ECS Task Definition
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'ChambaPeTask', {
       memoryLimitMiB: 1024,
-      cpu: 512
+      cpu: 512,
     });
 
     const container = taskDefinition.addContainer('api', {
@@ -129,20 +137,26 @@ export class ChambaPeStack extends cdk.Stack {
         DATABASE_PORT: '5432',
         DATABASE_NAME: 'chambape',
         AWS_S3_REGION: this.region,
-        AWS_S3_BUCKET: bucket.bucketName
+        AWS_S3_BUCKET: bucket.bucketName,
       },
       secrets: {
-        DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(database.secret!, 'password'),
-        DATABASE_USERNAME: ecs.Secret.fromSecretsManager(database.secret!, 'username')
+        DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(
+          database.secret!,
+          'password',
+        ),
+        DATABASE_USERNAME: ecs.Secret.fromSecretsManager(
+          database.secret!,
+          'username',
+        ),
       },
       logging: ecs.LogDrivers.awsLogs({
-        streamPrefix: 'chambape-api'
-      })
+        streamPrefix: 'chambape-api',
+      }),
     });
 
     container.addPortMappings({
       containerPort: 3000,
-      protocol: ecs.Protocol.TCP
+      protocol: ecs.Protocol.TCP,
     });
 
     // ECS Service
@@ -150,34 +164,34 @@ export class ChambaPeStack extends cdk.Stack {
       cluster,
       taskDefinition,
       desiredCount: 1,
-      assignPublicIp: false
+      assignPublicIp: false,
     });
 
     // Application Load Balancer
     const alb = new elbv2.ApplicationLoadBalancer(this, 'ChambaPeALB', {
       vpc,
-      internetFacing: true
+      internetFacing: true,
     });
 
     const listener = alb.addListener('Listener', {
       port: 80,
-      open: true
+      open: true,
     });
 
     listener.addTargets('ECS', {
       port: 80,
       targets: [service],
       healthCheckPath: '/api',
-      healthCheckInterval: cdk.Duration.seconds(60)
+      healthCheckInterval: cdk.Duration.seconds(60),
     });
 
     // Outputs
     new cdk.CfnOutput(this, 'LoadBalancerDNS', {
-      value: alb.loadBalancerDnsName
+      value: alb.loadBalancerDnsName,
     });
 
     new cdk.CfnOutput(this, 'DatabaseEndpoint', {
-      value: database.instanceEndpoint.hostname
+      value: database.instanceEndpoint.hostname,
     });
   }
 }
@@ -400,10 +414,12 @@ aws acm request-certificate \
 ## 📊 Monitoreo y Logs
 
 ### CloudWatch Logs
+
 - Los logs de la aplicación aparecerán automáticamente en CloudWatch
 - Grupo de logs: `/ecs/chambape-api`
 
 ### Métricas Importantes
+
 - CPU Utilization
 - Memory Utilization
 - Request Count
@@ -411,6 +427,7 @@ aws acm request-certificate \
 - Error Rate
 
 ### Alarmas Recomendadas
+
 ```powershell
 # Alarma CPU alta
 aws cloudwatch put-metric-alarm \
@@ -429,15 +446,18 @@ aws cloudwatch put-metric-alarm \
 ## 🔒 Seguridad
 
 ### 1. Security Groups
+
 - **ALB**: Puerto 80, 443 desde 0.0.0.0/0
 - **ECS**: Puerto 3000 desde ALB security group
 - **RDS**: Puerto 5432 desde ECS security group
 
 ### 2. IAM Roles
+
 - **ECS Task Execution Role**: Permisos para ECR, CloudWatch
 - **ECS Task Role**: Permisos para S3, SES, etc.
 
 ### 3. Secrets Manager
+
 - Almacenar credenciales de base de datos
 - Rotar passwords automáticamente
 

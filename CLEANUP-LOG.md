@@ -5,6 +5,7 @@
 ### Módulos Eliminados ❌
 
 1. **auth-apple/** - Módulo completo de autenticación con Apple
+
    - Motivo: No se usará en la implementación actual
    - Archivos eliminados:
      - `src/auth-apple/` (directorio completo)
@@ -44,6 +45,7 @@
 ### Estructura Final de Autenticación
 
 El sistema ahora soporta únicamente:
+
 1. **Email/Password** - Funcional ✅
 2. **Facebook** - Configurado, listo para implementar 🔄
 3. **Google** - Configurado, listo para implementar 🔄
@@ -66,18 +68,21 @@ El sistema ahora soporta únicamente:
 ### Endpoints Disponibles Después de la Limpieza
 
 #### Autenticación
+
 - `POST /api/auth/email/login` - Login con email
 - `POST /api/auth/email/register` - Registro con email
 - `POST /api/auth/facebook/login` - Login con Facebook (configurado)
 - `POST /api/auth/google/login` - Login con Google (configurado)
 
 #### Workers y Matching
+
 - `GET /api/workers/nearby` - Buscar workers cercanos
 - `POST /api/workers/register` - Registrar worker
 - `GET /api/matching/job/:jobId/workers` - Matching para trabajos
 - `GET /api/offers/my-offers` - Ofertas del worker
 
 #### Jobs
+
 - `POST /api/jobs` - Crear trabajo
 - `GET /api/jobs` - Listar trabajos
 - `GET /api/jobs/my-jobs` - Mis trabajos

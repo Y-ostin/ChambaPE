@@ -55,6 +55,13 @@ export class User {
   lastName: string | null;
 
   @ApiProperty({
+    type: String,
+    example: '987654321',
+  })
+  @Expose({ groups: ['me', 'admin'] })
+  phone?: string | null;
+
+  @ApiProperty({
     type: () => FileType,
   })
   photo?: FileType | null;

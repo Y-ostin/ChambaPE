@@ -3,6 +3,7 @@
 ## Entidades Principales
 
 ### 1. **users** (Usuario base)
+
 - id (UUID)
 - email (unique)
 - phone (unique)
@@ -16,6 +17,7 @@
 - updated_at
 
 ### 2. **user_profiles** (Perfil de usuario que contrata)
+
 - id (UUID)
 - user_id (FK)
 - address
@@ -27,6 +29,7 @@
 - updated_at
 
 ### 3. **worker_profiles** (Perfil de trabajador)
+
 - id (UUID)
 - user_id (FK)
 - is_verified (verificación de documentos)
@@ -43,6 +46,7 @@
 - updated_at
 
 ### 4. **service_categories** (Categorías de servicios)
+
 - id (UUID)
 - name (Limpieza, Cocina, Plomería, etc.)
 - description
@@ -51,6 +55,7 @@
 - created_at
 
 ### 5. **worker_services** (Servicios que ofrece cada trabajador)
+
 - id (UUID)
 - worker_id (FK)
 - service_category_id (FK)
@@ -60,6 +65,7 @@
 - created_at
 
 ### 6. **jobs** (Trabajos/Servicios solicitados)
+
 - id (UUID)
 - user_id (FK - quien contrata)
 - worker_id (FK - quien hace el trabajo, null hasta asignación)
@@ -79,6 +85,7 @@
 - updated_at
 
 ### 7. **job_applications** (Aplicaciones a trabajos)
+
 - id (UUID)
 - job_id (FK)
 - worker_id (FK)
@@ -89,6 +96,7 @@
 - created_at
 
 ### 8. **job_matches** (Matches automáticos)
+
 - id (UUID)
 - job_id (FK)
 - worker_id (FK)
@@ -100,6 +108,7 @@
 - created_at
 
 ### 9. **ratings** (Sistema de calificaciones)
+
 - id (UUID)
 - job_id (FK)
 - from_user_id (FK)
@@ -109,6 +118,7 @@
 - created_at
 
 ### 10. **payments** (Sistema de pagos)
+
 - id (UUID)
 - job_id (FK)
 - amount
@@ -120,6 +130,7 @@
 - created_at
 
 ### 11. **worker_subscriptions** (Suscripciones mensuales)
+
 - id (UUID)
 - worker_id (FK)
 - plan_type
@@ -131,6 +142,7 @@
 - created_at
 
 ### 12. **notifications** (Sistema de notificaciones)
+
 - id (UUID)
 - user_id (FK)
 - type (JOB_MATCH, JOB_ACCEPTED, JOB_COMPLETED, etc.)

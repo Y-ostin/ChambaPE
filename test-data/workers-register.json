@@ -12,6 +12,6 @@
   },
   "skills": ["Plomería", "Reparaciones menores"],
   "experience": "3 años de experiencia en instalaciones residenciales",
-  "hourlyRate": 50.00,
+  "hourlyRate": 50.0,
   "serviceRadius": 10
 }

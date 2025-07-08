@@ -113,6 +113,15 @@ export class UsersService {
       };
     }
 
+    // Manejo de teléfono
+    let phone: string | null | undefined = undefined;
+
+    if (createUserDto.phone) {
+      phone = createUserDto.phone;
+    } else if (createUserDto.phone === null) {
+      phone = null;
+    }
+
     return this.usersRepository.create({
       // Do not remove comment below.
       // <creating-property-payload />
@@ -120,6 +129,7 @@ export class UsersService {
       lastName: createUserDto.lastName,
       email: email,
       password: password,
+      phone: phone,
       photo: photo,
       role: role,
       status: status,
@@ -267,6 +277,15 @@ export class UsersService {
       };
     }
 
+    // Manejo de teléfono
+    let phone: string | null | undefined = undefined;
+
+    if (updateUserDto.phone) {
+      phone = updateUserDto.phone;
+    } else if (updateUserDto.phone === null) {
+      phone = null;
+    }
+
     return this.usersRepository.update(id, {
       // Do not remove comment below.
       // <updating-property-payload />
@@ -274,6 +293,7 @@ export class UsersService {
       lastName: updateUserDto.lastName,
       email,
       password,
+      phone,
       photo,
       role,
       status,

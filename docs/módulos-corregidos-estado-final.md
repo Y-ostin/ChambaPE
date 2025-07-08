@@ -11,12 +11,10 @@
 **Archivo:** `src/files/files.module.ts`
 
 **Cambio aplicado:**
+
 ```typescript
 @Module({
-  imports: [
-    infrastructurePersistenceModule,
-    infrastructureUploaderModule,
-  ],
+  imports: [infrastructurePersistenceModule, infrastructureUploaderModule],
   providers: [FilesService],
   exports: [
     FilesService,
@@ -39,6 +37,7 @@ export class FilesModule {}
 ## 🚀 VERIFICACIÓN DE FUNCIONAMIENTO
 
 ### Resultado de la Compilación:
+
 ```
 [11:51:34 p. m.] Found 0 errors. Watching for file changes.
 [Nest] 21896 - LOG [NestFactory] Starting Nest application...
@@ -49,6 +48,7 @@ export class FilesModule {}
 ```
 
 ### Rutas Disponibles:
+
 - ✅ `/api/validate/reniec` (POST)
 - ✅ `/api/validate/sunat/:ruc` (GET)
 - ✅ `/api/validate` (POST)
@@ -59,6 +59,7 @@ export class FilesModule {}
 ## 📋 PRÓXIMOS PASOS DE TESTING
 
 ### 1. Pruebas de Registro de Trabajadores con Validación
+
 ```bash
 # Iniciar el backend en puerto alternativo
 npm run start:dev -- --port 3001
@@ -73,6 +74,7 @@ npm run start:dev -- --port 3001
 ### 2. Endpoints para Validar
 
 **a) Validación RENIEC:**
+
 ```
 POST /api/validate/reniec
 Content-Type: application/json
@@ -82,11 +84,13 @@ Content-Type: application/json
 ```
 
 **b) Validación SUNAT:**
+
 ```
 GET /api/validate/sunat/20123456789
 ```
 
 **c) Upload de Archivo:**
+
 ```
 POST /api/files/upload
 Content-Type: multipart/form-data
@@ -94,6 +98,7 @@ file: [certificado_laboral.pdf]
 ```
 
 **d) Registro de Trabajador:**
+
 ```
 POST /api/workers/register
 Content-Type: application/json
@@ -133,6 +138,7 @@ Content-Type: application/json
 ## 🌐 PREPARACIÓN PARA AWS
 
 El backend está listo para:
+
 - **Testing local completo** con Postman/Swagger
 - **Migración a AWS** usando los scripts y configuraciones preparadas
 - **Despliegue en ECS** con RDS, S3 y funciones Lambda

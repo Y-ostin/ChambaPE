@@ -5,7 +5,7 @@
 El flujo original tenía un **bucle circular** que impedía el registro correcto de trabajadores:
 
 1. ❌ Para ser trabajador necesitas ser usuario primero
-2. ❌ Para subir archivos necesitas ser trabajador  
+2. ❌ Para subir archivos necesitas ser trabajador
 3. ❌ Pero para validar que eres trabajador necesitas subir archivos durante el registro
 
 ## Solución Implementada
@@ -34,6 +34,7 @@ export class RegisterWorkerPublicDto {
 **Endpoint:** `POST /workers/register-public`
 
 **Características:**
+
 - ✅ No requiere autenticación previa
 - ✅ Valida documentos ANTES de crear usuario
 - ✅ Crea usuario con rol `worker` directamente
@@ -41,6 +42,7 @@ export class RegisterWorkerPublicDto {
 - ✅ Envía email de confirmación
 
 **Flujo:**
+
 1. Validar archivos requeridos (DNI frontal, posterior, certificado)
 2. Verificar que email no esté registrado
 3. Verificar que DNI no esté en uso
@@ -62,6 +64,7 @@ async findByDniNumber(dniNumber: string): Promise<WorkerDto | null>
 **Endpoint:** `POST /files/upload-registration`
 
 **Características:**
+
 - ✅ No requiere autenticación
 - ✅ Valida exactamente 3 archivos requeridos
 - ✅ Valida nombres de campos específicos
@@ -86,15 +89,18 @@ async findByDniNumber(dniNumber: string): Promise<WorkerDto | null>
 ## Endpoints Disponibles
 
 ### Registro de Trabajadores
+
 - `POST /workers/register` - Para usuarios autenticados
 - `POST /workers/register-public` - **NUEVO** - Registro directo sin auth
 
 ### Subida de Archivos
+
 - `POST /files/upload-registration` - **NUEVO** - Subida sin autenticación
 
 ## Validaciones Implementadas
 
 ### Antes de Crear Usuario
+
 - ✅ Archivos requeridos presentes
 - ✅ Email no duplicado
 - ✅ DNI no duplicado
@@ -103,6 +109,7 @@ async findByDniNumber(dniNumber: string): Promise<WorkerDto | null>
 - ✅ Coincidencia de datos DNI
 
 ### Manejo de Errores
+
 - ✅ Errores específicos por tipo de validación
 - ✅ Mensajes claros para el usuario
 - ✅ Logs detallados para debugging
@@ -115,11 +122,12 @@ async findByDniNumber(dniNumber: string): Promise<WorkerDto | null>
 ✅ **Seguridad mantenida**  
 ✅ **Experiencia de usuario mejorada**  
 ✅ **Manejo robusto de errores**  
-✅ **Logs para debugging**  
+✅ **Logs para debugging**
 
 ## Uso en Frontend
 
 ### Registro de Trabajador
+
 ```javascript
 const formData = new FormData();
 formData.append('email', 'juan.perez@email.com');
@@ -134,11 +142,12 @@ formData.append('dni_pdf', fileCertificado);
 
 const response = await fetch('/api/v1/workers/register-public', {
   method: 'POST',
-  body: formData
+  body: formData,
 });
 ```
 
 ### Subida de Archivos
+
 ```javascript
 const formData = new FormData();
 formData.append('dni_frontal', fileFrontal);
@@ -147,7 +156,7 @@ formData.append('dni_pdf', fileCertificado);
 
 const response = await fetch('/api/v1/files/upload-registration', {
   method: 'POST',
-  body: formData
+  body: formData,
 });
 ```
 
@@ -157,4 +166,4 @@ const response = await fetch('/api/v1/files/upload-registration', {
 2. **Frontend:** Actualizar formularios para usar nuevos endpoints
 3. **Documentación:** Actualizar Swagger/OpenAPI
 4. **Monitoreo:** Agregar métricas de registro exitoso/fallido
-5. **Seguridad:** Revisar rate limiting para endpoints públicos 
+5. **Seguridad:** Revisar rate limiting para endpoints públicos

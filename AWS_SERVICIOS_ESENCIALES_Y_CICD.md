@@ -5,6 +5,7 @@
 Este documento presenta un análisis completo de los servicios AWS esenciales para el despliegue de ChambaPE en producción, junto con recomendaciones para automatización CI/CD que permitan múltiples deploys eficientes.
 
 **Estado actual**: El proyecto ya cuenta con una arquitectura AWS sólida que incluye:
+
 - ✅ Configuración Docker optimizada para AWS
 - ✅ Scripts de despliegue automatizado (`deploy-aws.sh`)
 - ✅ Integración con S3 para almacenamiento de archivos
@@ -18,17 +19,19 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
 ### 1. **Servicios Computacionales**
 
 #### **Amazon ECS Fargate** (Principal) ⭐
+
 - **Uso**: Orquestación de contenedores sin servidor
-- **Beneficios**: 
+- **Beneficios**:
   - Escalado automático sin gestión de servidores
   - Pago por uso (CPU/memoria consumida)
   - Integración nativa con ALB y CloudWatch
-- **Configuración mínima**: 
+- **Configuración mínima**:
   - 1 cluster ECS
   - Task definition con 0.5 vCPU, 1GB RAM (escalable)
   - Auto Scaling configurado (min: 1, max: 10 tasks)
 
 #### **AWS Lambda** (Complementario)
+
 - **Uso**: Validación de trabajadores (RENIEC, SUNAT, verificación de documentos)
 - **Funciones actuales**: `validate-reniec`, `validate-sunat`, `validate-background`
 - **Beneficios**: Costo ultra-bajo para operaciones puntuales
@@ -36,6 +39,7 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
 ### 2. **Base de Datos**
 
 #### **Amazon RDS PostgreSQL** ⭐
+
 - **Configuración recomendada**:
   - Instancia: `db.t3.micro` (inicio) → `db.t3.small` (producción)
   - Multi-AZ: Sí (alta disponibilidad)
@@ -44,6 +48,7 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
 - **Estimación de costo**: $20-40/mes (micro), $50-80/mes (small)
 
 #### **Amazon ElastiCache Redis** (Opcional pero recomendado)
+
 - **Uso**: Cache de sesiones, rate limiting, cache de consultas
 - **Configuración**: `cache.t3.micro` (1 nodo)
 - **Estimación de costo**: $15-25/mes
@@ -51,6 +56,7 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
 ### 3. **Almacenamiento**
 
 #### **Amazon S3** ⭐
+
 - **Buckets necesarios**:
   - `chambape-uploads-prod`: Archivos de usuarios
   - `chambape-worker-certificates`: Certificados de trabajadores
@@ -63,6 +69,7 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
 ### 4. **Red y Balanceado**
 
 #### **Application Load Balancer (ALB)** ⭐
+
 - **Función**: Distribución de tráfico, terminación SSL, health checks
 - **Configuración**:
   - Listeners: HTTP (redirige a HTTPS) y HTTPS
@@ -70,6 +77,7 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
   - Health check: `/health` endpoint
 
 #### **Amazon VPC**
+
 - **Configuración**:
   - 2 AZ mínimo (alta disponibilidad)
   - Subnets públicas (ALB) y privadas (ECS, RDS)
@@ -78,10 +86,12 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
 ### 5. **Seguridad y Certificados**
 
 #### **AWS Certificate Manager (ACM)** ⭐
+
 - **Uso**: Certificados SSL/TLS gratuitos
 - **Dominios**: `api.chambape.com`, `*.chambape.com`
 
 #### **AWS Secrets Manager** ⭐
+
 - **Secretos almacenados**:
   - Credenciales de base de datos
   - JWT secrets
@@ -89,17 +99,20 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
   - Claves OAuth (Google, Facebook)
 
 #### **AWS WAF** (Recomendado)
+
 - **Protección**: DDoS, inyección SQL, XSS
 - **Reglas**: Rate limiting, geoblocking, whitelisting
 
 ### 6. **Monitoreo y Logs**
 
 #### **Amazon CloudWatch** ⭐
+
 - **Métricas**: CPU, memoria, requests/sec, response time
 - **Logs**: Aplicación, ECS, ALB
 - **Alarmas**: CPU > 80%, Error rate > 5%, Response time > 2s
 
 #### **AWS X-Ray** (Opcional)
+
 - **Uso**: Tracing distribuido y análisis de performance
 
 ---
@@ -107,28 +120,30 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
 ## 💰 Estimación de Costos Mensuales
 
 ### **Configuración Inicial (MVP)**
-| Servicio | Configuración | Costo estimado |
-|----------|---------------|----------------|
-| ECS Fargate | 0.5 vCPU, 1GB RAM, 2 tasks | $25-35 |
-| RDS PostgreSQL | db.t3.micro, Multi-AZ | $30-40 |
-| ALB | Standard | $20-25 |
-| S3 | 10GB storage, 1000 requests | $5-10 |
-| CloudWatch | Logs + métricas | $10-15 |
-| Secrets Manager | 5 secretos | $2-3 |
-| ACM | Certificados SSL | $0 |
-| **TOTAL INICIAL** | | **$92-128/mes** |
+
+| Servicio          | Configuración               | Costo estimado  |
+| ----------------- | --------------------------- | --------------- |
+| ECS Fargate       | 0.5 vCPU, 1GB RAM, 2 tasks  | $25-35          |
+| RDS PostgreSQL    | db.t3.micro, Multi-AZ       | $30-40          |
+| ALB               | Standard                    | $20-25          |
+| S3                | 10GB storage, 1000 requests | $5-10           |
+| CloudWatch        | Logs + métricas             | $10-15          |
+| Secrets Manager   | 5 secretos                  | $2-3            |
+| ACM               | Certificados SSL            | $0              |
+| **TOTAL INICIAL** |                             | **$92-128/mes** |
 
 ### **Configuración Escalada (Producción Media)**
-| Servicio | Configuración | Costo estimado |
-|----------|---------------|----------------|
-| ECS Fargate | 1 vCPU, 2GB RAM, 4 tasks | $80-100 |
-| RDS PostgreSQL | db.t3.small, Multi-AZ | $60-80 |
-| ElastiCache Redis | cache.t3.micro | $20-25 |
-| ALB | Con WAF | $35-40 |
-| S3 | 100GB storage, 10K requests | $25-30 |
-| Lambda | 1M invocaciones/mes | $5-10 |
-| CloudWatch | Extended monitoring | $20-25 |
-| **TOTAL ESCALADO** | | **$245-310/mes** |
+
+| Servicio           | Configuración               | Costo estimado   |
+| ------------------ | --------------------------- | ---------------- |
+| ECS Fargate        | 1 vCPU, 2GB RAM, 4 tasks    | $80-100          |
+| RDS PostgreSQL     | db.t3.small, Multi-AZ       | $60-80           |
+| ElastiCache Redis  | cache.t3.micro              | $20-25           |
+| ALB                | Con WAF                     | $35-40           |
+| S3                 | 100GB storage, 10K requests | $25-30           |
+| Lambda             | 1M invocaciones/mes         | $5-10            |
+| CloudWatch         | Extended monitoring         | $20-25           |
+| **TOTAL ESCALADO** |                             | **$245-310/mes** |
 
 ---
 
@@ -137,6 +152,7 @@ Este documento presenta un análisis completo de los servicios AWS esenciales pa
 ### **Opción 1: GitHub Actions** (Recomendado) ⭐
 
 #### **Ventajas**:
+
 - ✅ Integración nativa con GitHub
 - ✅ Costo bajo (2000 minutos gratis/mes)
 - ✅ Configuración simple
@@ -150,9 +166,9 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   AWS_REGION: us-east-1
@@ -177,7 +193,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -215,7 +231,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - uses: actions/checkout@v3
       - name: Deploy Lambda functions
@@ -253,12 +269,14 @@ jobs:
 ### **Opción 2: AWS CodePipeline** (Alternativa empresarial)
 
 #### **Ventajas**:
+
 - ✅ Integración completa con AWS
 - ✅ IAM roles granulares
 - ✅ CloudWatch monitoring nativo
 - ✅ Aprobaciones manuales para producción
 
 #### **Configuración**:
+
 - **Source**: GitHub webhook
 - **Build**: CodeBuild (Docker + tests)
 - **Deploy**: CodeDeploy Blue/Green para ECS
@@ -266,6 +284,7 @@ jobs:
 ### **Opción 3: GitLab CI/CD** (Si se migra a GitLab)
 
 #### **Ventajas**:
+
 - ✅ GitLab Pages para documentación
 - ✅ Container Registry incluido
 - ✅ Review Apps automáticas
@@ -277,11 +296,13 @@ jobs:
 ### **Ambientes Recomendados**:
 
 1. **Development** (`dev.chambape.com`)
+
    - 1 task ECS Fargate (mínimo)
    - RDS t3.micro
    - Deploy automático en cada push a `develop`
 
 2. **Staging** (`staging.chambape.com`)
+
    - 2 tasks ECS Fargate
    - RDS t3.small
    - Deploy automático en cada PR a `main`
@@ -294,6 +315,7 @@ jobs:
    - Blue/Green deployment
 
 ### **Branching Strategy**:
+
 ```
 main (production)
 ├── develop (development)
@@ -302,6 +324,7 @@ main (production)
 ```
 
 ### **Deploy Pipeline**:
+
 ```mermaid
 graph LR
     A[Feature Branch] -->|PR| B[Development]
@@ -317,11 +340,13 @@ graph LR
 ### **IAM Roles y Políticas**:
 
 1. **ECS Task Role**:
+
    - S3 access para uploads
    - Secrets Manager read access
    - CloudWatch logs write
 
 2. **Lambda Execution Role**:
+
    - VPC access (si necesario)
    - Secrets Manager read
    - S3 read/write para certificados
@@ -332,6 +357,7 @@ graph LR
    - Lambda update
 
 ### **Network Security**:
+
 - Security Groups restrictivos
 - VPC Flow Logs habilitados
 - WAF con reglas anti-bot
@@ -342,11 +368,13 @@ graph LR
 ## 📊 Monitoreo y Alertas
 
 ### **Métricas Clave**:
+
 - **Performance**: Response time, throughput, error rate
 - **Infrastructure**: CPU, memoria, conexiones DB
 - **Business**: Registros/día, trabajos completados, pagos procesados
 
 ### **Alertas Críticas**:
+
 - Error rate > 5% (15 min)
 - Response time > 2s (5 min)
 - CPU > 80% (10 min)
@@ -354,6 +382,7 @@ graph LR
 - Disk space < 20% (inmediato)
 
 ### **Dashboard de Monitoreo**:
+
 ```json
 {
   "widgets": [
@@ -362,8 +391,18 @@ graph LR
       "properties": {
         "metrics": [
           ["AWS/ECS", "CPUUtilization", "ServiceName", "chambape-api-service"],
-          ["AWS/ECS", "MemoryUtilization", "ServiceName", "chambape-api-service"],
-          ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", "chambape-alb"]
+          [
+            "AWS/ECS",
+            "MemoryUtilization",
+            "ServiceName",
+            "chambape-api-service"
+          ],
+          [
+            "AWS/ApplicationELB",
+            "TargetResponseTime",
+            "LoadBalancer",
+            "chambape-alb"
+          ]
         ],
         "period": 300,
         "stat": "Average",
@@ -382,11 +421,13 @@ graph LR
 ### **Estrategia de Backups**:
 
 1. **Base de Datos**:
+
    - Automated backups (7 días)
    - Manual snapshots antes de deploys
    - Cross-region replication (opcional)
 
 2. **Archivos S3**:
+
    - Versioning habilitado
    - Cross-region replication
    - Lifecycle policies para optimizar costos
@@ -397,6 +438,7 @@ graph LR
    - Container images en ECR
 
 ### **Recovery Time Objectives (RTO)**:
+
 - **Database**: < 15 minutos (Multi-AZ)
 - **Application**: < 5 minutos (ECS auto-healing)
 - **Complete DR**: < 30 minutos (cross-region)
@@ -406,12 +448,14 @@ graph LR
 ## 📈 Plan de Escalamiento
 
 ### **Métricas de Escalamiento**:
+
 - **CPU > 70%**: Escalar ECS tasks
 - **Memory > 80%**: Escalar ECS tasks
 - **DB connections > 70%**: Escalar RDS
 - **Request queue > 100**: Escalar tasks
 
 ### **Escalamiento Automático ECS**:
+
 ```json
 {
   "scalingPolicy": {
@@ -430,6 +474,7 @@ graph LR
 ## 🎯 Roadmap de Implementación
 
 ### **Fase 1: MVP (Semana 1-2)**
+
 - [ ] Configurar ECR y subir imagen inicial
 - [ ] Crear cluster ECS con task definition básica
 - [ ] Configurar RDS PostgreSQL
@@ -437,6 +482,7 @@ graph LR
 - [ ] Configurar GitHub Actions básico
 
 ### **Fase 2: Producción Básica (Semana 3-4)**
+
 - [ ] Implementar monitoring con CloudWatch
 - [ ] Configurar Secrets Manager
 - [ ] Setup WAF básico
@@ -444,12 +490,14 @@ graph LR
 - [ ] Deploy de Lambda functions
 
 ### **Fase 3: Optimización (Mes 2)**
+
 - [ ] Auto-scaling completo
 - [ ] Múltiples ambientes (dev/staging/prod)
 - [ ] Blue/Green deployments
 - [ ] Monitoring avanzado con alertas
 
 ### **Fase 4: Escalamiento (Mes 3+)**
+
 - [ ] CDN con CloudFront
 - [ ] ElastiSearch para logs
 - [ ] Cross-region deployment
@@ -460,16 +508,19 @@ graph LR
 ## 🚨 Consideraciones Importantes
 
 ### **Costos Variables**:
+
 - El tráfico puede aumentar costos de ALB y data transfer
 - Lambda costs dependen del volumen de validaciones
 - S3 costs crecen con el storage de archivos
 
 ### **Compliance y Regulaciones**:
+
 - GDPR/CCPA: Configurar data retention policies
 - PCI DSS: Si se procesan pagos (usar AWS Payment Cryptography)
 - Auditoría: CloudTrail habilitado
 
 ### **Performance Considerations**:
+
 - CDN para assets estáticos (CloudFront)
 - Connection pooling para la base de datos
 - Cache warming strategies
@@ -480,16 +531,19 @@ graph LR
 ## 📞 Próximos Pasos Recomendados
 
 1. **Inmediato (Esta semana)**:
+
    - Revisar y actualizar secrets en Secrets Manager
    - Configurar GitHub secrets para CI/CD
    - Ejecutar el script de deploy inicial en staging
 
 2. **Corto plazo (Próximas 2 semanas)**:
+
    - Implementar el pipeline de GitHub Actions
    - Configurar monitoring y alertas básicas
    - Setup de ambientes múltiples
 
 3. **Mediano plazo (Próximo mes)**:
+
    - Optimizar costos con reserved instances
    - Implementar WAF y security hardening
    - Setup de disaster recovery
@@ -504,12 +558,14 @@ graph LR
 ## 📋 Checklist Final
 
 ### **Pre-Deploy**:
+
 - [ ] AWS CLI configurado con permisos correctos
 - [ ] Secrets configurados en Secrets Manager
 - [ ] Dominio registrado y DNS configurado
 - [ ] SSL certificate solicitado y validado
 
 ### **Deploy Day**:
+
 - [ ] Backup de datos actual (si aplica)
 - [ ] Execute deploy script
 - [ ] Verificar health checks
@@ -517,6 +573,7 @@ graph LR
 - [ ] Verificar logging y monitoring
 
 ### **Post-Deploy**:
+
 - [ ] Configurar alertas de monitoreo
 - [ ] Documentar access keys y endpoints
 - [ ] Setup de backup automático
@@ -526,4 +583,4 @@ graph LR
 
 **¡Tu infraestructura ChambaPE está lista para escalamiento empresarial! 🚀**
 
-*Para cualquier consulta técnica o ajustes específicos, el script `deploy-aws.sh` ya incluye la mayoría de estas configuraciones y puede ser customizado según necesidades específicas.*
+_Para cualquier consulta técnica o ajustes específicos, el script `deploy-aws.sh` ya incluye la mayoría de estas configuraciones y puede ser customizado según necesidades específicas._

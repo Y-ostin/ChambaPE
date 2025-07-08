@@ -43,7 +43,7 @@ npm run start:dev
 **🎉 ¡Listo!** Tu API estará en http://localhost:3000
 
 - **📚 Documentación**: http://localhost:3000/docs
-- **🔧 Admin DB**: http://localhost:8080  
+- **🔧 Admin DB**: http://localhost:8080
 - **📧 MailDev**: http://localhost:1080
 
 ---
@@ -51,36 +51,43 @@ npm run start:dev
 ## ✨ Características Principales
 
 ### 🤖 **Matching Automático Inteligente**
+
 - Algoritmo que analiza ubicación, servicios y disponibilidad
 - Generación automática de ofertas sin intervención manual
 - Sistema de puntuación para optimizar compatibilidad
 
 ### 🔐 **Autenticación Robusta**
+
 - Registro diferenciado por roles (Cliente/Trabajador)
 - Autenticación JWT con refresh tokens
 - Confirmación por email y recuperación de contraseña
 
 ### 📍 **Geolocalización Avanzada**
+
 - Búsqueda por radio de distancia
-- Cálculo de proximidad en tiempo real  
+- Cálculo de proximidad en tiempo real
 - Filtros geográficos optimizados
 
 ### 💼 **Gestión Completa de Servicios**
+
 - Catálogo extenso de servicios especializados
 - Tarifas personalizadas por trabajador
 - Sistema de calificaciones y reviews
 
 ### 📱 **API REST Completa**
+
 - 30+ endpoints documentados
 - Swagger UI interactivo
 - Validación exhaustiva con DTOs
 
 ### 📧 **Sistema de Notificaciones**
+
 - Emails automáticos para confirmaciones
 - Notificaciones de ofertas en tiempo real
 - Plantillas personalizables
 
 ### 🔒 **Validación de Trabajadores (NUEVA FUNCIONALIDAD)**
+
 - **Integración con RENIEC** para validación de identidad
 - **Verificación SUNAT** para antecedentes tributarios
 - **Análisis de Certificado Único Laboral** con AWS Textract
@@ -92,6 +99,7 @@ npm run start:dev
 ## 🏗️ Arquitectura
 
 ### **Backend (NestJS)**
+
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Autenticación │    │    Matching     │    │     Ofertas     │
@@ -107,8 +115,9 @@ npm run start:dev
 ```
 
 ### **Tecnologías Core**
+
 - **Framework**: NestJS + TypeScript
-- **Base de Datos**: PostgreSQL + TypeORM  
+- **Base de Datos**: PostgreSQL + TypeORM
 - **Autenticación**: JWT + Guards
 - **Documentación**: Swagger/OpenAPI
 - **Testing**: Jest + Supertest
@@ -119,8 +128,9 @@ npm run start:dev
 ## 📊 Estado del Proyecto
 
 ### ✅ **Completado y Validado**
+
 - [x] Backend API completo y funcional
-- [x] Sistema de matching automático operativo  
+- [x] Sistema de matching automático operativo
 - [x] Ofertas automáticas implementadas y probadas
 - [x] Autenticación y autorización robusta
 - [x] Base de datos optimizada y migrada
@@ -130,6 +140,7 @@ npm run start:dev
 - [x] Geolocalización y búsqueda por proximidad
 
 ### 🚧 **En Desarrollo**
+
 - [ ] Frontend React/Vue.js
 - [ ] Aplicación móvil (React Native)
 - [ ] Sistema de pagos integrado
@@ -137,6 +148,7 @@ npm run start:dev
 - [ ] Push notifications
 
 ### 🔮 **Roadmap**
+
 - [ ] Inteligencia artificial para mejor matching
 - [ ] Sistema de calificaciones bidireccional
 - [ ] Marketplace de servicios premium
@@ -147,6 +159,7 @@ npm run start:dev
 ## 🧪 Testing y Validación
 
 ### **Testing Automatizado**
+
 ```powershell
 npm run test        # Tests unitarios (95% coverage)
 npm run test:e2e    # Tests end-to-end completos
@@ -154,6 +167,7 @@ npm run test:cov    # Coverage detallado
 ```
 
 ### **Validación Manual**
+
 - ✅ **30+ endpoints** validados con datos reales
 - ✅ **Flujos completos** de cliente y trabajador
 - ✅ **Matching automático** funcionando correctamente
@@ -162,7 +176,9 @@ npm run test:cov    # Coverage detallado
 - ✅ **Autenticación** robusta con roles diferenciados
 
 ### **Datos de Prueba**
+
 El proyecto incluye archivos JSON con datos de prueba listos para usar:
+
 - 👤 Usuarios de ejemplo (clientes y trabajadores)
 - 💼 Trabajos de prueba con diferentes servicios
 - 🔧 Perfiles de trabajadores especializados
@@ -173,11 +189,13 @@ El proyecto incluye archivos JSON con datos de prueba listos para usar:
 ## 📚 Documentación
 
 ### **Para Desarrolladores**
+
 - 📖 **[Guía Completa de Desarrollo](README_DESARROLLO.md)** - Setup, configuración y troubleshooting
 - 🧪 **[Guía de Testing](GUIA_TESTING_COMPLETA.md)** - Testing exhaustivo y validación
 - 🏗️ **[Documentación Técnica](docs/)** - Arquitectura, base de datos y más
 
 ### **Para Usuarios de la API**
+
 - 🔗 **Swagger UI**: http://localhost:3000/docs
 - 📋 **Colección Postman**: `ChambaPE_Testing_Collection.postman_collection.json`
 - 🎯 **Endpoints Clave**: Autenticación, Matching, Ofertas, Workers, Jobs
@@ -195,6 +213,7 @@ El proyecto incluye archivos JSON con datos de prueba listos para usar:
 5. **Abre** un Pull Request
 
 ### **Convenciones**
+
 - Usar **Conventional Commits** para mensajes
 - Mantener **cobertura de tests** > 90%
 - Seguir las **convenciones de TypeScript**
@@ -219,6 +238,7 @@ Este proyecto está licenciado bajo la **MIT License** - ver el archivo [LICENSE
 ## 🏆 Reconocimientos
 
 Construido con:
+
 - [NestJS](https://nestjs.com/) - Framework Node.js escalable
 - [TypeORM](https://typeorm.io/) - ORM para TypeScript
 - [PostgreSQL](https://www.postgresql.org/) - Base de datos robusta
@@ -280,16 +300,16 @@ ChambaPE está diseñado para migrar completamente a AWS, aprovechando servicios
 
 ### 💰 **Estimación de Costos AWS (Mensual)**
 
-| Servicio | Uso Estimado | Costo Mensual |
-|----------|--------------|---------------|
-| **ECS Fargate** | 2 tareas, 1 vCPU, 2GB RAM | $50-100 |
-| **RDS PostgreSQL** | db.t3.small, Multi-AZ | $50-80 |
-| **Lambda Functions** | 1000 validaciones/mes | $15-25 |
-| **Step Functions** | Orquestación de validaciones | $5-10 |
-| **S3 + CloudWatch** | Storage y logs | $15-25 |
-| **ALB + VPC** | Networking | $25-35 |
-| **SQS + Secrets Manager** | Colas y credenciales | $5-10 |
-| **TOTAL ESTIMADO** | | **$165-285/mes** |
+| Servicio                  | Uso Estimado                 | Costo Mensual    |
+| ------------------------- | ---------------------------- | ---------------- |
+| **ECS Fargate**           | 2 tareas, 1 vCPU, 2GB RAM    | $50-100          |
+| **RDS PostgreSQL**        | db.t3.small, Multi-AZ        | $50-80           |
+| **Lambda Functions**      | 1000 validaciones/mes        | $15-25           |
+| **Step Functions**        | Orquestación de validaciones | $5-10            |
+| **S3 + CloudWatch**       | Storage y logs               | $15-25           |
+| **ALB + VPC**             | Networking                   | $25-35           |
+| **SQS + Secrets Manager** | Colas y credenciales         | $5-10            |
+| **TOTAL ESTIMADO**        |                              | **$165-285/mes** |
 
 ### 🚀 **Comandos de Deployment**
 
@@ -327,7 +347,7 @@ El flujo de validación integra servicios oficiales peruanos:
 
 1. **📄 Subida de Certificado** - El trabajador sube su Certificado Único Laboral
 2. **🔍 Validación RENIEC** - Verificación de identidad con datos oficiales
-3. **🏛️ Validación SUNAT** - Verificación de antecedentes tributarios  
+3. **🏛️ Validación SUNAT** - Verificación de antecedentes tributarios
 4. **📋 Análisis de Certificado** - AWS Textract extrae y valida información laboral
 5. **✅ Aprobación/Rechazo** - Decisión automática basada en criterios
 6. **📧 Notificación** - Email automático con resultado

@@ -3,11 +3,13 @@
 ## 📋 Prerequisitos
 
 ### 1. Cuenta AWS
+
 - ✅ Cuenta AWS configurada en región **us-east-2**
 - ✅ Acceso como usuario root o IAM con permisos administrativos
 - ✅ AWS CLI instalado y configurado
 
 ### 2. Herramientas Locales
+
 - Docker Desktop instalado
 - Node.js 18+ instalado
 - Git configurado
@@ -16,6 +18,7 @@
 ## 🔧 Configuración Inicial
 
 ### Paso 1: Configurar AWS CLI
+
 ```powershell
 # Verificar instalación
 aws --version
@@ -335,21 +338,25 @@ Start-Process "http://$ALB_DNS/docs"
 ## 🎯 Siguientes Pasos
 
 ### 1. Configurar Dominio (Opcional)
+
 - Configurar Route 53 para dominio personalizado
 - Crear certificado SSL con ACM
 - Actualizar ALB para usar HTTPS
 
 ### 2. Configurar Monitoreo
+
 - Configurar CloudWatch dashboards
 - Crear alarmas para métricas clave
 - Configurar notificaciones SNS
 
 ### 3. Configurar CI/CD
+
 - Configurar secrets en GitHub
 - Habilitar workflows automáticos
 - Configurar environments en GitHub
 
 ### 4. Optimización
+
 - Configurar Auto Scaling
 - Implementar caché con ElastiCache
 - Configurar WAF para seguridad
@@ -365,18 +372,21 @@ Start-Process "http://$ALB_DNS/docs"
 ## 🆘 Solución de Problemas
 
 ### Si el servicio no inicia:
+
 ```powershell
 # Verificar logs del contenedor
 aws logs get-log-events --log-group-name /ecs/chambape-api --log-stream-name [stream-name]
 ```
 
 ### Si no se puede conectar a la base de datos:
+
 ```powershell
 # Verificar grupos de seguridad
 aws ec2 describe-security-groups --group-ids $RDS_SG $ECS_SG
 ```
 
 ### Si hay problemas con ECR:
+
 ```powershell
 # Re-autenticarse
 aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_URI

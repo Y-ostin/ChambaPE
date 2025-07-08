@@ -36,4 +36,9 @@ export class AuthUpdateDto {
   @IsOptional()
   @IsNotEmpty({ message: 'mustBeNotEmpty' })
   oldPassword?: string;
+
+  @ApiPropertyOptional({ example: '987654321' })
+  @IsOptional()
+  @IsNotEmpty({ message: 'mustBeNotEmpty' })
+  phone?: string;
 }

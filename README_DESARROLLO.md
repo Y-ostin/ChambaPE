@@ -16,6 +16,7 @@ ChambaPE es una plataforma innovadora que conecta trabajadores de servicios con 
 > **Importante**: Los trabajadores NO aplican manualmente a trabajos. El sistema genera **ofertas automáticas** basadas en matching inteligente.
 
 **Flujo Principal:**
+
 1. **Clientes** publican trabajos/servicios requeridos
 2. **Sistema** analiza trabajadores compatibles por ubicación y servicios
 3. **Sistema** genera ofertas automáticas para trabajadores elegibles
@@ -25,6 +26,7 @@ ChambaPE es una plataforma innovadora que conecta trabajadores de servicios con 
 ### 🏗️ Arquitectura y Tecnologías
 
 **Backend:**
+
 - **Framework**: NestJS (Node.js + TypeScript)
 - **Base de Datos**: PostgreSQL con TypeORM
 - **Autenticación**: JWT + Guards + Roles
@@ -33,6 +35,7 @@ ChambaPE es una plataforma innovadora que conecta trabajadores de servicios con 
 - **Contenedores**: Docker & Docker Compose
 
 **Módulos Principales:**
+
 - **Auth Module** - Registro/login con roles diferenciados
 - **Workers Module** - Perfiles especializados con servicios
 - **Jobs Module** - Publicación de trabajos por clientes
@@ -61,6 +64,7 @@ ChambaPE es una plataforma innovadora que conecta trabajadores de servicios con 
 ### Software Requerido
 
 **Windows (PowerShell):**
+
 ```powershell
 # Node.js 18+ (recomendado)
 node --version    # >= v18.x.x
@@ -77,6 +81,7 @@ git --version     # git version X.x.x
 ```
 
 **Verificación de instalación:**
+
 ```powershell
 node --version && npm --version && docker --version && git --version
 ```
@@ -178,11 +183,13 @@ docker-compose up -d postgres adminer maildev
 ```
 
 **Servicios que se levantan:**
+
 - 🐘 **PostgreSQL** (puerto 5432) - Base de datos principal
 - 🔧 **Adminer** (http://localhost:8080) - Interfaz web para gestionar DB
 - 📧 **MailDev** (http://localhost:1080) - Cliente de email para desarrollo
 
 **Verificar que estén corriendo:**
+
 ```powershell
 docker-compose ps
 # Debería mostrar 3 servicios: postgres, adminer, maildev
@@ -206,8 +213,9 @@ npm run start:dev
 ```
 
 **¡Listo! El servidor estará disponible en:**
+
 - 🚀 **API Principal**: http://localhost:3000
-- 📚 **Swagger UI**: http://localhost:3000/docs  
+- 📚 **Swagger UI**: http://localhost:3000/docs
 - 🏥 **Health Check**: http://localhost:3000/api/v1
 - 🔧 **Adminer**: http://localhost:8080
 - 📧 **MailDev**: http://localhost:1080
@@ -221,9 +229,10 @@ npm run start:dev
 **URL**: http://localhost:8080
 
 **Credenciales:**
+
 - **Sistema**: PostgreSQL
 - **Servidor**: postgres
-- **Usuario**: root  
+- **Usuario**: root
 - **Contraseña**: secret
 - **Base de datos**: chambape_db
 
@@ -244,13 +253,14 @@ npm run migration:revert
 
 # Recrear DB completa (⚠️ ELIMINA TODOS LOS DATOS)
 npm run schema:drop
-npm run migration:run  
+npm run migration:run
 npm run seed:run:relational
 ```
 
 ### Estructura Principal de la DB
 
 Las tablas principales que se crean:
+
 - **users** - Usuarios base (clientes y trabajadores)
 - **workers** - Perfiles de trabajadores con ubicación
 - **jobs** - Trabajos publicados por clientes
@@ -270,12 +280,14 @@ Las tablas principales que se crean:
 **Acceso**: http://localhost:1080
 
 **Correos que intercepta:**
+
 - ✉️ Confirmación de registro de usuario
-- ✉️ Recuperación de contraseña  
+- ✉️ Recuperación de contraseña
 - ✉️ Notificaciones de ofertas automáticas
 - ✉️ Confirmaciones de trabajos
 
 **Probar envío:**
+
 ```powershell
 # 1. Registrar un usuario con datos reales
 # 2. Ir a http://localhost:1080
@@ -291,6 +303,7 @@ Las tablas principales que se crean:
 **URL**: http://localhost:3000/docs
 
 **Características:**
+
 - 📋 Explorar todos los endpoints disponibles
 - ⚡ Probar requests directamente desde el navegador
 - 📖 Ver schemas de request/response
@@ -302,13 +315,14 @@ Las tablas principales que se crean:
 ```powershell
 # 1. Ir a http://localhost:3000/docs
 # 2. Registrar usuario en: POST /api/v1/auth/email/register
-# 3. Hacer login en: POST /api/v1/auth/email/login  
+# 3. Hacer login en: POST /api/v1/auth/email/login
 # 4. Copiar el 'token' de la respuesta
 # 5. Click en "Authorize" (🔒) en la parte superior
 # 6. Ingresar: Bearer tu_token_aqui
 # 7. Ya puedes usar endpoints protegidos
 ```
-```
+
+````
 
 ### 3. **Configurar Variables de Entorno**
 
@@ -359,7 +373,7 @@ BACKEND_DOMAIN=http://localhost:3000
 
 # Worker
 WORKER_HOST=redis://localhost:6379/1
-```
+````
 
 ### 4. **Levantar MailDev (Para Testing de Emails)**
 
@@ -404,6 +418,7 @@ npm run start:dev
 ## 📚 Endpoints Principales
 
 ### 🔐 Autenticación
+
 ```bash
 # Registro de usuario
 POST /api/v1/auth/email/register
@@ -427,6 +442,7 @@ Authorization: Bearer {token}
 ```
 
 ### 👷 Trabajadores
+
 ```bash
 # Registrar como trabajador
 POST /api/v1/workers/register
@@ -449,6 +465,7 @@ GET /api/v1/workers/nearby?latitude=-12.0464&longitude=-77.0428&radiusKm=10
 ```
 
 ### 💼 Trabajos
+
 ```bash
 # Crear trabajo
 POST /api/v1/jobs
@@ -473,6 +490,7 @@ Authorization: Bearer {token}
 ```
 
 ### 🎯 Matching
+
 ```bash
 # Trabajadores compatibles para un trabajo
 GET /api/v1/matching/job/{jobId}/workers
@@ -484,6 +502,7 @@ Authorization: Bearer {token}
 ```
 
 ### 💼 Ofertas Automáticas
+
 ```bash
 # Mis ofertas como trabajador
 GET /api/v1/offers/my-offers
@@ -509,6 +528,7 @@ Authorization: Bearer {token}
 ## 🧪 Testing del Sistema
 
 ### Verificar Instalación
+
 ```bash
 # 1. Verificar servidor
 curl http://localhost:3000
@@ -524,6 +544,7 @@ curl http://localhost:3000
 ### Flujo de Testing Básico
 
 1. **Registrar Cliente**:
+
 ```bash
 POST /api/v1/auth/email/register
 {
@@ -537,6 +558,7 @@ POST /api/v1/auth/email/register
 2. **Verificar Email** en MailDev (http://localhost:1080)
 
 3. **Login y obtener token**:
+
 ```bash
 POST /api/v1/auth/email/login
 {
@@ -546,6 +568,7 @@ POST /api/v1/auth/email/login
 ```
 
 4. **Registrar como trabajador**:
+
 ```bash
 POST /api/v1/workers/register
 # (usar token del paso anterior)
@@ -554,6 +577,7 @@ POST /api/v1/workers/register
 5. **Crear trabajo y verificar ofertas automáticas**
 
 ### Archivos de Testing Incluidos
+
 - `ChambaPE_Testing_Collection.postman_collection.json` - Colección de Postman
 - `GUIA_TESTING_COMPLETA.md` - Guía exhaustiva de testing
 - `test-data/` - Archivos JSON de ejemplo
@@ -618,10 +642,13 @@ test-data/              # Datos de prueba
 ### 🔴 **Problemas Comunes**
 
 #### 1. **Error de conexión a PostgreSQL**
+
 ```
 Error: connect ECONNREFUSED 127.0.0.1:5432
 ```
+
 **Solución:**
+
 ```powershell
 # Verificar que PostgreSQL esté corriendo
 docker-compose ps
@@ -634,6 +661,7 @@ docker-compose logs postgres
 ```
 
 #### 2. **Error de migraciones - "column referenced in foreign key constraint does not exist"**
+
 ```
 QueryFailedError: column "job_id" referenced in foreign key constraint does not exist
 Migration "CreateJobMatchTable1750223950000" failed
@@ -642,6 +670,7 @@ Migration "CreateJobMatchTable1750223950000" failed
 **Causa**: Esta migración puede fallar si se ejecutó parcialmente en el pasado.
 
 **Solución:**
+
 ```powershell
 # Opción 1: Verificar si la tabla ya existe y tiene las columnas
 npm run typeorm -- --dataSource=src/database/data-source.ts query "SELECT column_name FROM information_schema.columns WHERE table_name = 'job_match';"
@@ -656,16 +685,19 @@ npm run seed:run:relational
 ```
 
 #### 3. **Error 403 Forbidden en endpoints de trabajador**
+
 ```json
 {
   "message": "Forbidden resource",
-  "error": "Forbidden", 
+  "error": "Forbidden",
   "statusCode": 403
 }
 ```
+
 **Causa**: El usuario no tiene perfil de trabajador creado.
 
 **Solución:**
+
 ```powershell
 # Después de registrarse como trabajador, crear el perfil:
 # POST /api/v1/workers/profile con datos completos
@@ -673,13 +705,16 @@ npm run seed:run:relational
 ```
 
 #### 4. **Ofertas automáticas no se generan**
+
 **Verificar:**
+
 1. ✅ Trabajador tiene perfil completo con servicios asignados
 2. ✅ Trabajo publicado coincide con servicios del trabajador
 3. ✅ Ubicaciones están dentro del radio configurado
 4. ✅ No existen ofertas previas para esa combinación
 
 #### 5. **MailDev no recibe correos**
+
 ```powershell
 # Verificar que MailDev esté corriendo
 docker-compose ps | findstr maildev
@@ -693,10 +728,13 @@ docker-compose restart maildev
 ```
 
 #### 6. **Puerto 3000 ocupado**
+
 ```
 Error: listen EADDRINUSE: address already in use :::3000
 ```
+
 **Solución:**
+
 ```powershell
 # Opción 1: Cambiar puerto en .env
 APP_PORT=3001
@@ -707,7 +745,9 @@ taskkill /PID <PID_ENCONTRADO> /F
 ```
 
 #### 7. **Docker Desktop no responde (Windows)**
+
 **Solución:**
+
 ```powershell
 # Reiniciar Docker Desktop
 # Ejecutar PowerShell como Administrador
@@ -716,12 +756,15 @@ taskkill /PID <PID_ENCONTRADO> /F
 ```
 
 #### 8. **Error de migraciones en equipos nuevos**
+
 ```
 Error: relation "job_match" already exists
 ```
+
 **Causa**: Diferencias en el estado de la base de datos entre desarrolladores.
 
 **Solución para nuevos desarrolladores:**
+
 ```powershell
 # 1. Limpiar base de datos completamente
 npm run schema:drop
@@ -776,12 +819,14 @@ tree /f src | more
 ### 🚨 **Problemas Conocidos y Soluciones**
 
 #### **Migración CreateJobMatchTable1750223950000**
+
 - **Problema**: Puede fallar en equipos donde se ejecutó parcialmente
 - **Síntoma**: Error "column referenced in foreign key constraint does not exist"
 - **Solución**: Seguir los pasos del punto 2 en troubleshooting
 - **Estado**: Conocido y documentado
 
 #### **Sincronización entre desarrolladores**
+
 - **Recomendación**: Al unirse al proyecto, siempre ejecutar:
   ```powershell
   docker-compose up -d postgres adminer maildev
@@ -820,6 +865,7 @@ ChambaPE está diseñado para escalar en AWS con la siguiente arquitectura:
 > **Importante**: La nueva rama incluye validaciones avanzadas para trabajadores formales
 
 **Flujo de Validación:**
+
 1. **Worker registra** perfil con datos personales
 2. **Sistema valida** identidad con RENIEC (DNI, nombres, apellidos)
 3. **Sistema consulta** SUNAT para verificar:
@@ -865,22 +911,23 @@ AWS_DEFAULT_S3_BUCKET=chambape-files-prod
 
 ### **Costos Estimados AWS (Mensual)**
 
-| Servicio | Configuración | Costo Aprox. |
-|----------|---------------|--------------|
-| **ECS Fargate** | 2 vCPU, 4GB RAM (2 instancias) | $60-80 |
-| **RDS PostgreSQL** | db.t3.medium (Multi-AZ) | $80-120 |
-| **ElastiCache Redis** | cache.t3.micro | $15-25 |
-| **Lambda Functions** | 1M requests/month | $5-10 |
-| **SQS** | 1M messages | $1-3 |
-| **SES** | 10K emails | $1-2 |
-| **S3** | 100GB storage | $3-5 |
-| **CloudWatch** | Logs & Metrics | $10-20 |
-| **Data Transfer** | Regional | $5-15 |
-| **Total Estimado** | | **$180-280/mes** |
+| Servicio              | Configuración                  | Costo Aprox.     |
+| --------------------- | ------------------------------ | ---------------- |
+| **ECS Fargate**       | 2 vCPU, 4GB RAM (2 instancias) | $60-80           |
+| **RDS PostgreSQL**    | db.t3.medium (Multi-AZ)        | $80-120          |
+| **ElastiCache Redis** | cache.t3.micro                 | $15-25           |
+| **Lambda Functions**  | 1M requests/month              | $5-10            |
+| **SQS**               | 1M messages                    | $1-3             |
+| **SES**               | 10K emails                     | $1-2             |
+| **S3**                | 100GB storage                  | $3-5             |
+| **CloudWatch**        | Logs & Metrics                 | $10-20           |
+| **Data Transfer**     | Regional                       | $5-15            |
+| **Total Estimado**    |                                | **$180-280/mes** |
 
 ### **Pasos de Migración**
 
 #### **1. Preparación (Semana 1)**
+
 ```powershell
 # Crear infraestructura base
 cd infrastructure/
@@ -894,6 +941,7 @@ aws secretsmanager create-secret --name "ChambaPE/external/apis"
 ```
 
 #### **2. Despliegue de Aplicación (Semana 2)**
+
 ```powershell
 # Build y push de imagen
 docker build -f Dockerfile.production -t chambape-api .
@@ -906,6 +954,7 @@ aws ecs create-service --service-name chambape-api --cluster ChambaPE-Cluster
 ```
 
 #### **3. Configuración de Validaciones (Semana 3)**
+
 ```powershell
 # Desplegar Lambda functions
 cd lambda/
@@ -921,6 +970,7 @@ aws stepfunctions create-state-machine --name ChambaPE-Worker-Validation
 ### **Documentación de Migración Completa**
 
 📚 **Archivos de Referencia:**
+
 - `docs/aws-migration-plan.md` - Plan detallado de infraestructura
 - `docs/aws-production-config.md` - Configuración de producción
 - `infrastructure/` - Terraform files (próximamente)
@@ -929,6 +979,7 @@ aws stepfunctions create-state-machine --name ChambaPE-Worker-Validation
 ### **Monitoreo en Producción**
 
 **CloudWatch Dashboards:**
+
 - API Performance & Latency
 - Database Connection Pool
 - Validation Success/Failure Rate
@@ -936,6 +987,7 @@ aws stepfunctions create-state-machine --name ChambaPE-Worker-Validation
 - Cost Optimization Metrics
 
 **Alertas Automáticas:**
+
 - High CPU/Memory usage
 - Database connection issues
 - Failed validations (RENIEC/SUNAT)
@@ -947,6 +999,7 @@ aws stepfunctions create-state-machine --name ChambaPE-Worker-Validation
 ## 👥 Contribución
 
 ### Flujo de Desarrollo
+
 1. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
 2. Desarrollar y probar localmente
 3. Ejecutar tests: `npm run test`
@@ -955,6 +1008,7 @@ aws stepfunctions create-state-machine --name ChambaPE-Worker-Validation
 6. Crear Pull Request
 
 ### Estándares de Código
+
 - **ESLint** configurado con reglas de NestJS
 - **Prettier** para formateo automático
 - **Conventional Commits** para mensajes de commit
@@ -965,13 +1019,16 @@ aws stepfunctions create-state-machine --name ChambaPE-Worker-Validation
 ## 📞 Soporte
 
 ### Documentación Adicional
+
 - **Swagger UI**: http://localhost:3000/docs
 - **Guía de Testing**: `GUIA_TESTING_COMPLETA.md`
 - **Arquitectura**: `docs/architecture.md`
 - **AWS Migration**: `docs/aws-migration-plan.md`
 
 ### Problemas Comunes
+
 Si encuentras problemas, consulta:
+
 1. Esta guía de troubleshooting
 2. Los logs del servidor: `npm run start:dev`
 3. La documentación en `docs/`
@@ -984,6 +1041,7 @@ Si encuentras problemas, consulta:
 **ESTADO: ✅ COMPLETADO - BACKEND FUNCIONAL Y LISTO PARA TESTING**
 
 ### 🎯 Problemas Resueltos
+
 - ✅ **Errores de módulos NestJS**: Corregidas todas las dependencias de `ValidateModule`, `FilesModule`, `WorkersModule`
 - ✅ **Integración de validación**: Módulo de validación RENIEC/SUNAT completamente integrado
 - ✅ **Upload de archivos**: `FilesLocalService` disponible para upload de certificados laborales PDF
@@ -991,6 +1049,7 @@ Si encuentras problemas, consulta:
 - ✅ **Compilación**: Backend arranca sin errores, todas las rutas mapeadas
 
 ### 🚀 Backend Operativo
+
 ```bash
 # El backend se ejecuta correctamente con:
 npm run start:dev
@@ -1004,6 +1063,7 @@ npm run start:dev
 ```
 
 ### 📋 Próximos Pasos
+
 1. **Testing completo** con Postman de registro de trabajadores con PDF
 2. **Pruebas de validación** RENIEC/SUNAT en vivo
 3. **Migración a AWS** usando los scripts preparados
@@ -1015,4 +1075,4 @@ Ver detalles completos en: `docs/módulos-corregidos-estado-final.md`
 
 **¡El proyecto ChambaPE está listo para desarrollo y despliegue en AWS! 🚀**
 
-*Última actualización: 29 de Junio, 2025*
+_Última actualización: 29 de Junio, 2025_
