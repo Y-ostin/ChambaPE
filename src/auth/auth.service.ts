@@ -629,4 +629,20 @@ export class AuthService {
       tokenExpires,
     };
   }
+
+  async generateConfirmEmailHash(userId: User['id']): Promise<string> {
+    return this.jwtService.signAsync(
+      {
+        confirmEmailUserId: userId,
+      },
+      {
+        secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
+          infer: true,
+        }),
+        expiresIn: this.configService.getOrThrow('auth.confirmEmailExpires', {
+          infer: true,
+        }),
+      },
+    );
+  }
 }

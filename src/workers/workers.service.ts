@@ -34,8 +34,11 @@ export class WorkersService {
     userId: number,
     createWorkerDto: CreateWorkerDto,
   ): Promise<WorkerDto> {
+    console.log('🔧 WorkersService.create - INICIO DEL MÉTODO');
     console.log('🔧 WorkersService.create - userId:', userId);
     console.log('🔧 WorkersService.create - createWorkerDto:', createWorkerDto);
+    console.log('🔧 WorkersService.create - tipo userId:', typeof userId);
+    console.log('🔧 WorkersService.create - userId es número:', !isNaN(userId));
     console.log(
       '🔧 WorkersService.create - radiusKm tipo:',
       typeof createWorkerDto.radiusKm,
@@ -55,7 +58,7 @@ export class WorkersService {
       console.log('❌ Usuario no encontrado con ID:', userId);
       throw new NotFoundException('Usuario no encontrado');
     }
-    
+
     console.log('✅ Usuario encontrado:', user.id, user.email);
 
     // Verificar si ya tiene perfil de trabajador
@@ -64,13 +67,18 @@ export class WorkersService {
     });
 
     if (existingWorker) {
-      console.log('❌ Usuario ya tiene perfil de trabajador:', existingWorker.id);
+      console.log(
+        '❌ Usuario ya tiene perfil de trabajador:',
+        existingWorker.id,
+      );
       throw new ConflictException(
         'El usuario ya está registrado como trabajador',
       );
     }
-    
-    console.log('✅ Usuario no tiene perfil de trabajador, procediendo a crear');
+
+    console.log(
+      '✅ Usuario no tiene perfil de trabajador, procediendo a crear',
+    );
 
     // Verificar categorías de servicio si se proporcionan
     if (createWorkerDto.serviceCategories?.length) {
@@ -100,7 +108,7 @@ export class WorkersService {
       dniFrontalUrl: createWorkerDto.dniFrontalUrl,
       dniPosteriorUrl: createWorkerDto.dniPosteriorUrl,
     });
-    
+
     const workerProfile = this.workerProfileRepository.create({
       user,
       description: createWorkerDto.description,
@@ -114,8 +122,22 @@ export class WorkersService {
     });
 
     console.log('🔧 Perfil de trabajador creado en memoria, guardando...');
-    const savedWorker = await this.workerProfileRepository.save(workerProfile);
-    console.log('✅ Perfil de trabajador guardado exitosamente:', savedWorker.id);
+    try {
+      const savedWorker = await this.workerProfileRepository.save(workerProfile);
+      console.log(
+        '✅ Perfil de trabajador guardado exitosamente:',
+        savedWorker.id,
+      );
+      console.log('🔧 Datos del perfil guardado:', {
+        id: savedWorker.id,
+        userId: savedWorker.user?.id,
+        dniNumber: savedWorker.dniNumber,
+        description: savedWorker.description,
+      });
+    } catch (saveError) {
+      console.log('❌ Error guardando perfil de trabajador:', saveError);
+      throw saveError;
+    }
 
     // Crear o actualizar perfil de usuario con ubicación si se proporciona
     if (createWorkerDto.latitude && createWorkerDto.longitude) {
@@ -145,7 +167,15 @@ export class WorkersService {
     user.role = { id: RoleEnum.worker } as any;
     await this.userRepository.save(user);
 
-    return this.findByUserId(userId);
+    console.log('🔧 Llamando a findByUserId para retornar el trabajador creado...');
+    try {
+      const result = await this.findByUserId(userId);
+      console.log('✅ findByUserId exitoso, retornando trabajador:', result.id);
+      return result;
+    } catch (error) {
+      console.log('❌ Error en findByUserId después de crear:', error);
+      throw error;
+    }
   }
 
   async findNearby(findNearbyDto: FindNearbyWorkersDto): Promise<WorkerDto[]> {
@@ -226,16 +256,64 @@ export class WorkersService {
   }
 
   async findByUserId(userId: number): Promise<WorkerDto> {
+    console.log('🔍 findByUserId - Buscando trabajador para userId:', userId);
+    console.log('🔍 findByUserId - Tipo de userId:', typeof userId);
+    console.log('🔍 findByUserId - userId es NaN:', isNaN(userId));
+    
+    if (isNaN(userId) || userId === null || userId === undefined) {
+      console.log('❌ findByUserId - userId inválido:', userId);
+      throw new BadRequestException('ID de usuario inválido');
+    }
+    
+    try {
     const worker = await this.workerProfileRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user', 'user.role', 'serviceCategories'],
     });
 
+      console.log('🔍 findByUserId - Resultado de búsqueda:', worker ? `Encontrado ID: ${worker.id}` : 'No encontrado');
+      
+      if (worker) {
+        console.log('🔍 findByUserId - Datos del trabajador encontrado:', {
+          id: worker.id,
+          userId: worker.user?.id,
+          dniNumber: worker.dniNumber,
+          description: worker.description,
+          dniFrontalUrl: worker.dniFrontalUrl,
+          dniPosteriorUrl: worker.dniPosteriorUrl,
+          certificatePdfUrl: worker.certificatePdfUrl,
+        });
+      }
+
     if (!worker) {
+        console.log('❌ findByUserId - Perfil de trabajador no encontrado para userId:', userId);
+        
+        // Verificar si el usuario existe
+        const userExists = await this.userRepository.findOne({
+          where: { id: userId },
+        });
+        console.log('🔍 findByUserId - Usuario existe:', userExists ? 'Sí' : 'No');
+        
+        // Verificar si hay algún perfil de trabajador en la base de datos
+        const allWorkers = await this.workerProfileRepository.find({
+          relations: ['user'],
+        });
+        console.log('🔍 findByUserId - Total de perfiles de trabajador en BD:', allWorkers.length);
+        if (allWorkers.length > 0) {
+          console.log('🔍 findByUserId - IDs de usuarios con perfiles:', allWorkers.map(w => w.user?.id));
+        }
+        
       throw new NotFoundException('Perfil de trabajador no encontrado');
     }
 
-    return this.mapToDto(worker);
+      console.log('✅ findByUserId - Trabajador encontrado, mapeando a DTO...');
+      const result = this.mapToDto(worker);
+      console.log('✅ findByUserId - Mapeo exitoso, retornando DTO');
+      return result;
+    } catch (error) {
+      console.log('❌ findByUserId - Error en la consulta:', error);
+      throw error;
+    }
   }
 
   async findOne(id: number): Promise<WorkerDto> {
@@ -261,11 +339,11 @@ export class WorkersService {
   }
 
   async update(
-    userId: number,
+    workerId: number, // <-- ahora es el ID del perfil de trabajador
     updateWorkerDto: UpdateWorkerDto,
   ): Promise<WorkerDto> {
     const worker = await this.workerProfileRepository.findOne({
-      where: { user: { id: userId } },
+      where: { id: workerId }, // <-- buscar por id del perfil
     });
 
     if (!worker) {
@@ -285,10 +363,13 @@ export class WorkersService {
       });
     }
 
-    return this.findByUserId(userId);
+    return this.findByUserId(worker.user.id);
   }
 
-  async toggleActiveToday(userId: number): Promise<WorkerDto> {
+  async toggleActiveToday(
+    userId: number,
+    locationData?: { latitude?: number; longitude?: number },
+  ): Promise<WorkerDto> {
     const worker = await this.workerProfileRepository.findOne({
       where: { user: { id: userId } },
     });
@@ -297,9 +378,27 @@ export class WorkersService {
       throw new NotFoundException('Perfil de trabajador no encontrado');
     }
 
-    await this.workerProfileRepository.update(worker.id, {
-      isActiveToday: !worker.isActiveToday,
-    });
+    const newActiveState = !worker.isActiveToday;
+    
+    // Si se está activando y no hay ubicación, requerirla
+    if (newActiveState && (!locationData?.latitude || !locationData?.longitude)) {
+      throw new BadRequestException(
+        'Se requiere ubicación (latitude y longitude) para activar la disponibilidad',
+      );
+    }
+
+    // Preparar datos de actualización
+    const updateData: any = {
+      isActiveToday: newActiveState,
+    };
+
+    // Si se está activando y se proporciona ubicación, actualizarla
+    if (newActiveState && locationData?.latitude && locationData?.longitude) {
+      updateData.latitude = locationData.latitude;
+      updateData.longitude = locationData.longitude;
+    }
+
+    await this.workerProfileRepository.update(worker.id, updateData);
 
     return this.findByUserId(userId);
   }
@@ -496,6 +595,9 @@ export class WorkersService {
       monthlySubscriptionStatus: worker.monthlySubscriptionStatus,
       subscriptionExpiresAt: worker.subscriptionExpiresAt || undefined,
       certificatesUrls: worker.certificatesUrls,
+      dniFrontalUrl: worker.dniFrontalUrl || undefined,
+      dniPosteriorUrl: worker.dniPosteriorUrl || undefined,
+      certificatePdfUrl: worker.certificatePdfUrl || undefined,
       serviceCategories: worker.serviceCategories?.map((cat) => ({
         id: cat.id,
         name: cat.name,

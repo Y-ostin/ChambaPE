@@ -214,7 +214,7 @@ export class ValidateController {
   async consultarDni(@Query('dni') dni: string) {
     try {
       const token =
-        '88794da72e28b5d99bfbae3f32cfbc4b56328da81388bf11761350dbda7eb94f';
+        'c93f36a7a5a6c3b1d97bd4ef260d35d46d6ad1556307a5fa3c6b45bb5a98ef00';
       const url = 'https://apiperu.dev/api/dni';
       const headers = {
         Accept: 'application/json',
@@ -293,7 +293,7 @@ export class ValidateController {
       let datosDni;
       try {
         const token =
-          '88794da72e28b5d99bfbae3f32cfbc4b56328da81388bf11761350dbda7eb94f';
+          'c93f36a7a5a6c3b1d97bd4ef260d35d46d6ad1556307a5fa3c6b45bb5a98ef00'; 
         const url = 'https://apiperu.dev/api/dni';
         const headers = {
           Accept: 'application/json',
