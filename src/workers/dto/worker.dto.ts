@@ -75,6 +75,27 @@ export class WorkerDto {
   certificatesUrls?: string[];
 
   @ApiProperty({
+    description: 'URL de la imagen frontal del DNI',
+    example: '/uploads/dni_frontal.jpg',
+    required: false,
+  })
+  dniFrontalUrl?: string;
+
+  @ApiProperty({
+    description: 'URL de la imagen posterior del DNI',
+    example: '/uploads/dni_posterior.jpg',
+    required: false,
+  })
+  dniPosteriorUrl?: string;
+
+  @ApiProperty({
+    description: 'URL del certificado PDF',
+    example: '/uploads/certificado.pdf',
+    required: false,
+  })
+  certificatePdfUrl?: string;
+
+  @ApiProperty({
     description: 'Categorías de servicios que ofrece el trabajador',
     type: [ServiceCategoryDto],
     required: false,

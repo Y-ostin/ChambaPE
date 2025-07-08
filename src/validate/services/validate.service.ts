@@ -1,7 +1,7 @@
 // src/validate/services/validate.service.ts
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs/promises';
-import * as pdfParse from 'pdf-parse';
+import pdfParse from 'pdf-parse';
 import axios from 'axios';
 
 @Injectable()
