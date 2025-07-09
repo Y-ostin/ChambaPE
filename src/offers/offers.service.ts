@@ -47,14 +47,23 @@ export class OffersService {
     }
 
     // Buscar workers compatibles usando el servicio de matching
-    const matches = await this.matchingService.findMatchesForJob(jobId, {
+    let matches = await this.matchingService.findMatchesForJob(jobId, {
       radiusKm: 50,
       minScore: 50,
       limit: 10,
     });
 
+    // Si no encontramos trabajadores con el puntaje mínimo, relajamos el filtro
     if (matches.length === 0) {
-      // No hay workers disponibles
+      matches = await this.matchingService.findMatchesForJob(jobId, {
+        radiusKm: 50,
+        minScore: 0, // aceptar cualquier score
+        limit: 10,
+      });
+    }
+
+    if (matches.length === 0) {
+      // Aún no hay workers disponibles
       return null;
     }
 
@@ -295,6 +304,11 @@ export class OffersService {
       jobId: offer.job.id,
       jobTitle: offer.job.title,
       jobDescription: offer.job.description,
+      jobAddress: offer.job.address,
+      jobLatitude: offer.job.latitude,
+      jobLongitude: offer.job.longitude,
+      serviceCategoryName: offer.job.serviceCategory?.name ?? '',
+      urgency: undefined,
       workerId: offer.worker.id,
       workerName: `${offer.worker.firstName} ${offer.worker.lastName}`,
       status: offer.status,
