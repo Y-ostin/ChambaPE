@@ -293,7 +293,7 @@ export class ValidateController {
       let datosDni;
       try {
         const token =
-          'c93f36a7a5a6c3b1d97bd4ef260d35d46d6ad1556307a5fa3c6b45bb5a98ef00'; 
+          'c93f36a7a5a6c3b1d97bd4ef260d35d46d6ad1556307a5fa3c6b45bb5a98ef00';
         const url = 'https://apiperu.dev/api/dni';
         const headers = {
           Accept: 'application/json',

@@ -86,4 +86,3 @@ export class RegisterWorkerPublicDto {
   @IsString()
   filesMeta?: string;
 }
- 

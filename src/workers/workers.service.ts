@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
+import { Inject, forwardRef } from '@nestjs/common';
 import { WorkerProfileEntity } from '../users/infrastructure/persistence/relational/entities/worker-profile.entity';
 import { UserEntity } from '../users/infrastructure/persistence/relational/entities/user.entity';
 import { UserProfileEntity } from '../users/infrastructure/persistence/relational/entities/user-profile.entity';
@@ -16,6 +17,9 @@ import { FindNearbyWorkersDto } from './dto/find-nearby-workers.dto';
 import { ManageWorkerServicesDto } from './dto/manage-worker-services.dto';
 import { WorkerDto } from './dto/worker.dto';
 import { RoleEnum } from '../roles/roles.enum';
+import { JobEntity } from '../jobs/infrastructure/persistence/relational/entities/job.entity';
+import { JobStatus } from '../jobs/enums/job-status.enum';
+import { OffersService } from '../offers/offers.service';
 
 @Injectable()
 export class WorkersService {
@@ -28,6 +32,10 @@ export class WorkersService {
     private readonly userProfileRepository: Repository<UserProfileEntity>,
     @InjectRepository(ServiceCategoryEntity)
     private readonly serviceCategoryRepository: Repository<ServiceCategoryEntity>,
+    @InjectRepository(JobEntity)
+    private readonly jobRepository: Repository<JobEntity>,
+    @Inject(forwardRef(() => OffersService))
+    private readonly offersService: OffersService,
   ) {}
 
   async create(
@@ -123,7 +131,8 @@ export class WorkersService {
 
     console.log('🔧 Perfil de trabajador creado en memoria, guardando...');
     try {
-      const savedWorker = await this.workerProfileRepository.save(workerProfile);
+      const savedWorker =
+        await this.workerProfileRepository.save(workerProfile);
       console.log(
         '✅ Perfil de trabajador guardado exitosamente:',
         savedWorker.id,
@@ -166,7 +175,9 @@ export class WorkersService {
     user.role = { id: RoleEnum.worker } as any;
     await this.userRepository.save(user);
 
-    console.log('🔧 Llamando a findByUserId para retornar el trabajador creado...');
+    console.log(
+      '🔧 Llamando a findByUserId para retornar el trabajador creado...',
+    );
     try {
       const result = await this.findByUserId(userId);
       console.log('✅ findByUserId exitoso, retornando trabajador:', result.id);
@@ -258,20 +269,23 @@ export class WorkersService {
     console.log('🔍 findByUserId - Buscando trabajador para userId:', userId);
     console.log('🔍 findByUserId - Tipo de userId:', typeof userId);
     console.log('🔍 findByUserId - userId es NaN:', isNaN(userId));
-    
+
     if (isNaN(userId) || userId === null || userId === undefined) {
       console.log('❌ findByUserId - userId inválido:', userId);
       throw new BadRequestException('ID de usuario inválido');
     }
-    
-    try {
-    const worker = await this.workerProfileRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['user', 'user.role', 'serviceCategories'],
-    });
 
-      console.log('🔍 findByUserId - Resultado de búsqueda:', worker ? `Encontrado ID: ${worker.id}` : 'No encontrado');
-      
+    try {
+      const worker = await this.workerProfileRepository.findOne({
+        where: { user: { id: userId } },
+        relations: ['user', 'user.role', 'serviceCategories'],
+      });
+
+      console.log(
+        '🔍 findByUserId - Resultado de búsqueda:',
+        worker ? `Encontrado ID: ${worker.id}` : 'No encontrado',
+      );
+
       if (worker) {
         console.log('🔍 findByUserId - Datos del trabajador encontrado:', {
           id: worker.id,
@@ -284,26 +298,38 @@ export class WorkersService {
         });
       }
 
-    if (!worker) {
-        console.log('❌ findByUserId - Perfil de trabajador no encontrado para userId:', userId);
-        
+      if (!worker) {
+        console.log(
+          '❌ findByUserId - Perfil de trabajador no encontrado para userId:',
+          userId,
+        );
+
         // Verificar si el usuario existe
         const userExists = await this.userRepository.findOne({
           where: { id: userId },
         });
-        console.log('🔍 findByUserId - Usuario existe:', userExists ? 'Sí' : 'No');
-        
+        console.log(
+          '🔍 findByUserId - Usuario existe:',
+          userExists ? 'Sí' : 'No',
+        );
+
         // Verificar si hay algún perfil de trabajador en la base de datos
         const allWorkers = await this.workerProfileRepository.find({
           relations: ['user'],
         });
-        console.log('🔍 findByUserId - Total de perfiles de trabajador en BD:', allWorkers.length);
+        console.log(
+          '🔍 findByUserId - Total de perfiles de trabajador en BD:',
+          allWorkers.length,
+        );
         if (allWorkers.length > 0) {
-          console.log('🔍 findByUserId - IDs de usuarios con perfiles:', allWorkers.map(w => w.user?.id));
+          console.log(
+            '🔍 findByUserId - IDs de usuarios con perfiles:',
+            allWorkers.map((w) => w.user?.id),
+          );
         }
-        
-      throw new NotFoundException('Perfil de trabajador no encontrado');
-    }
+
+        throw new NotFoundException('Perfil de trabajador no encontrado');
+      }
 
       console.log('✅ findByUserId - Trabajador encontrado, mapeando a DTO...');
       const result = this.mapToDto(worker);
@@ -378,9 +404,12 @@ export class WorkersService {
     }
 
     const newActiveState = !worker.isActiveToday;
-    
+
     // Si se está activando y no hay ubicación, requerirla
-    if (newActiveState && (!locationData?.latitude || !locationData?.longitude)) {
+    if (
+      newActiveState &&
+      (!locationData?.latitude || !locationData?.longitude)
+    ) {
       throw new BadRequestException(
         'Se requiere ubicación (latitude y longitude) para activar la disponibilidad',
       );
@@ -398,6 +427,38 @@ export class WorkersService {
     }
 
     await this.workerProfileRepository.update(worker.id, updateData);
+
+    // Si el trabajador acaba de ACTIVARSE, genera ofertas para trabajos pendientes
+    if (newActiveState) {
+      const pendingJobs = await this.jobRepository.find({
+        where: { status: JobStatus.PENDING },
+        relations: ['serviceCategory'],
+      });
+
+      console.log(
+        '⚙️ toggleActiveToday - Trabajos PENDING encontrados:',
+        pendingJobs.length,
+      );
+
+      for (const job of pendingJobs) {
+        try {
+          const offer = await this.offersService.createAutomaticOffer(job.id);
+          console.log(
+            '✅ Oferta creada o existente para Job',
+            job.id,
+            '→',
+            offer?.id ?? 'null',
+          );
+        } catch (e) {
+          // No detener todo por un error en una oferta individual
+          console.error(
+            '❌ Error creando oferta automática para Job',
+            job.id,
+            e,
+          );
+        }
+      }
+    }
 
     return this.findByUserId(userId);
   }

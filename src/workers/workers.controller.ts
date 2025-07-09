@@ -392,7 +392,7 @@ export class WorkersController {
       reniec = await this.validateService.consultarDatosReniec(
         createWorkerDto.dniNumber,
       );
-      
+
       // Validar PDF del Ministerio de Trabajo
       resultadoCert = await this.validateService.validarCertificado(
         dniPdfUrl,
@@ -433,8 +433,10 @@ export class WorkersController {
     if (existingUser) {
       // Si el usuario ya existe, verificar que no tenga perfil de trabajador
       // NOTA: Removemos esta verificación porque causa problemas en el flujo
-      console.log('🔍 Usuario existente encontrado, continuando con registro de perfil de trabajador');
-      
+      console.log(
+        '🔍 Usuario existente encontrado, continuando con registro de perfil de trabajador',
+      );
+
       // Usar usuario existente y actualizar su rol a worker
       user = existingUser;
       await this.usersService.update(Number(user.id), {
@@ -444,18 +446,18 @@ export class WorkersController {
       console.log('🔧 Usuario existente actualizado con rol worker');
     } else {
       // Crear nuevo usuario directamente con rol worker
-    const userData = {
-      email: createWorkerDto.email,
-      password: createWorkerDto.password,
-      firstName: createWorkerDto.firstName,
-      lastName: createWorkerDto.lastName,
-      role: {
+      const userData = {
+        email: createWorkerDto.email,
+        password: createWorkerDto.password,
+        firstName: createWorkerDto.firstName,
+        lastName: createWorkerDto.lastName,
+        role: {
           id: RoleEnum.worker, // Rol worker desde el inicio
-      },
-      status: {
+        },
+        status: {
           id: StatusEnum.inactive, // Requiere confirmación por email
-      },
-    };
+        },
+      };
       user = await this.usersService.create(userData);
       console.log('🔧 Nuevo usuario creado directamente con rol worker');
     }
@@ -468,7 +470,7 @@ export class WorkersController {
     console.log('🔧 dniPdfUrl:', dniPdfUrl);
     console.log('🔧 dniFrontalUrl:', dniFrontalUrl);
     console.log('🔧 dniPosteriorUrl:', dniPosteriorUrl);
-    
+
     const workerData = {
       dniNumber: createWorkerDto.dniNumber,
       description:
@@ -490,7 +492,12 @@ export class WorkersController {
     try {
       console.log('🔧 === INICIANDO CREACIÓN DE TRABAJADOR ===');
       console.log('🔧 Llamando a workersService.create...');
-      console.log('🔧 Parámetros: userId =', Number(user.id), 'workerData =', workerData);
+      console.log(
+        '🔧 Parámetros: userId =',
+        Number(user.id),
+        'workerData =',
+        workerData,
+      );
       worker = await this.workersService.create(Number(user.id), workerData);
       console.log('🔧 Trabajador creado exitosamente:', worker);
       console.log('🔧 === FIN CREACIÓN DE TRABAJADOR ===');
@@ -525,7 +532,7 @@ export class WorkersController {
     try {
       // Generar hash de confirmación correcto
       const hash = await this.authService.generateConfirmEmailHash(user.id);
-      
+
       await this.mailService.userSignUp({
         to: createWorkerDto.email,
         data: {
@@ -587,12 +594,15 @@ export class WorkersController {
   async getMyProfile(@Request() request): Promise<WorkerDto> {
     console.log('🔍 getMyProfile - request.user:', request.user);
     console.log('🔍 getMyProfile - request.user.id:', request.user.id);
-    console.log('🔍 getMyProfile - Tipo de request.user.id:', typeof request.user.id);
-    
+    console.log(
+      '🔍 getMyProfile - Tipo de request.user.id:',
+      typeof request.user.id,
+    );
+
     if (!request.user || !request.user.id) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
-    
+
     return this.workersService.findByUserId(request.user.id);
   }
 
@@ -730,9 +740,10 @@ export class WorkersController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(RoleEnum.worker)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Configurar servicios del trabajador autenticado',
-    description: 'Permite al trabajador configurar sus categorías de servicios y descripción.',
+    description:
+      'Permite al trabajador configurar sus categorías de servicios y descripción.',
   })
   @ApiResponse({
     status: 200,
@@ -740,7 +751,10 @@ export class WorkersController {
     type: WorkerDto,
   })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 404, description: 'Perfil de trabajador no encontrado' })
+  @ApiResponse({
+    status: 404,
+    description: 'Perfil de trabajador no encontrado',
+  })
   async configureMyServices(
     @Request() req,
     @Body() serviceData: { serviceCategories: number[]; description?: string },
@@ -748,7 +762,10 @@ export class WorkersController {
     console.log('🔧 configureMyServices - INICIO');
     console.log('🔧 configureMyServices - req.user:', req.user);
     console.log('🔧 configureMyServices - req.user.id:', req.user.id);
-    console.log('🔧 configureMyServices - tipo req.user.id:', typeof req.user.id);
+    console.log(
+      '🔧 configureMyServices - tipo req.user.id:',
+      typeof req.user.id,
+    );
     console.log('🔧 configureMyServices - serviceData:', serviceData);
 
     if (!req.user || !req.user.id) {
@@ -757,43 +774,68 @@ export class WorkersController {
     }
 
     try {
-    const workerProfile = await this.workersService.findByUserId(req.user.id);
-      console.log('✅ configureMyServices - Perfil de trabajador encontrado:', workerProfile.id);
-      
+      const workerProfile = await this.workersService.findByUserId(req.user.id);
+      console.log(
+        '✅ configureMyServices - Perfil de trabajador encontrado:',
+        workerProfile.id,
+      );
+
       // Actualizar servicios del trabajador
       const updateData = {
         serviceCategories: serviceData.serviceCategories,
         description: serviceData.description || workerProfile.description,
       };
 
-      console.log('🔧 configureMyServices - Datos de actualización:', updateData);
-      const updatedWorker = await this.workersService.update(workerProfile.id, updateData);
-      console.log('✅ configureMyServices - Trabajador actualizado exitosamente');
-      
+      console.log(
+        '🔧 configureMyServices - Datos de actualización:',
+        updateData,
+      );
+      const updatedWorker = await this.workersService.update(
+        workerProfile.id,
+        updateData,
+      );
+      console.log(
+        '✅ configureMyServices - Trabajador actualizado exitosamente',
+      );
+
       return {
         message: 'Servicios configurados exitosamente',
         worker: updatedWorker,
       };
     } catch (error) {
       console.log('❌ configureMyServices - Error:', error);
-      
+
       // Si es un error de "Perfil no encontrado", dar más información
       if (error instanceof NotFoundException) {
-        console.log('🔍 configureMyServices - Intentando depuración adicional...');
-        
-                 // Verificar si el usuario existe
-         try {
-           const user = await this.usersService.findById(req.user.id);
-           console.log('🔍 configureMyServices - Usuario existe:', user ? 'Sí' : 'No');
-           if (user) {
-             console.log('🔍 configureMyServices - Rol del usuario:', user.role?.id);
-             console.log('🔍 configureMyServices - Estado del usuario:', user.status?.id);
-           }
-         } catch (userError) {
-           console.log('🔍 configureMyServices - Error verificando usuario:', userError);
-         }
+        console.log(
+          '🔍 configureMyServices - Intentando depuración adicional...',
+        );
+
+        // Verificar si el usuario existe
+        try {
+          const user = await this.usersService.findById(req.user.id);
+          console.log(
+            '🔍 configureMyServices - Usuario existe:',
+            user ? 'Sí' : 'No',
+          );
+          if (user) {
+            console.log(
+              '🔍 configureMyServices - Rol del usuario:',
+              user.role?.id,
+            );
+            console.log(
+              '🔍 configureMyServices - Estado del usuario:',
+              user.status?.id,
+            );
+          }
+        } catch (userError) {
+          console.log(
+            '🔍 configureMyServices - Error verificando usuario:',
+            userError,
+          );
+        }
       }
-      
+
       throw error;
     }
   }
@@ -865,12 +907,15 @@ export class WorkersController {
     console.log('🔍 debugWorkerProfile - INICIO');
     console.log('🔍 debugWorkerProfile - req.user:', req.user);
     console.log('🔍 debugWorkerProfile - req.user.id:', req.user.id);
-    
+
     try {
       // Verificar si el usuario existe
       const user = await this.usersService.findById(req.user.id);
-      console.log('🔍 debugWorkerProfile - Usuario encontrado:', user ? 'Sí' : 'No');
-      
+      console.log(
+        '🔍 debugWorkerProfile - Usuario encontrado:',
+        user ? 'Sí' : 'No',
+      );
+
       if (user) {
         console.log('🔍 debugWorkerProfile - Datos del usuario:', {
           id: user.id,
@@ -881,32 +926,40 @@ export class WorkersController {
           statusId: user.status?.id,
         });
       }
-      
+
       // Intentar encontrar el perfil de trabajador
       try {
-        const workerProfile = await this.workersService.findByUserId(req.user.id);
-        console.log('🔍 debugWorkerProfile - Perfil de trabajador encontrado:', workerProfile.id);
-        
-                 return {
-           success: true,
-           user: {
-             id: user?.id,
-             email: user?.email,
-             roleId: user?.role?.id,
-             statusId: user?.status?.id,
-           },
-           workerProfile: {
-             id: workerProfile.id,
-             description: workerProfile.description,
-             dniFrontalUrl: workerProfile.dniFrontalUrl,
-             dniPosteriorUrl: workerProfile.dniPosteriorUrl,
-             certificatePdfUrl: workerProfile.certificatePdfUrl,
-           },
-           message: 'Perfil de trabajador encontrado correctamente',
-         };
+        const workerProfile = await this.workersService.findByUserId(
+          req.user.id,
+        );
+        console.log(
+          '🔍 debugWorkerProfile - Perfil de trabajador encontrado:',
+          workerProfile.id,
+        );
+
+        return {
+          success: true,
+          user: {
+            id: user?.id,
+            email: user?.email,
+            roleId: user?.role?.id,
+            statusId: user?.status?.id,
+          },
+          workerProfile: {
+            id: workerProfile.id,
+            description: workerProfile.description,
+            dniFrontalUrl: workerProfile.dniFrontalUrl,
+            dniPosteriorUrl: workerProfile.dniPosteriorUrl,
+            certificatePdfUrl: workerProfile.certificatePdfUrl,
+          },
+          message: 'Perfil de trabajador encontrado correctamente',
+        };
       } catch (workerError) {
-        console.log('🔍 debugWorkerProfile - Error buscando perfil de trabajador:', workerError);
-        
+        console.log(
+          '🔍 debugWorkerProfile - Error buscando perfil de trabajador:',
+          workerError,
+        );
+
         return {
           success: false,
           user: {

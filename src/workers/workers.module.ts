@@ -7,6 +7,8 @@ import { UserEntity } from '../users/infrastructure/persistence/relational/entit
 import { UserProfileEntity } from '../users/infrastructure/persistence/relational/entities/user-profile.entity';
 import { ValidateModule } from '../validate/validate.module';
 import { ServiceCategoryEntity } from '../services/infrastructure/persistence/relational/entities/service-category.entity';
+import { JobEntity } from '../jobs/infrastructure/persistence/relational/entities/job.entity';
+import { OffersModule } from '../offers/offers.module';
 import { FilesModule } from '../files/files.module';
 import { MailModule } from '../mail/mail.module';
 import { AuthModule } from '../auth/auth.module';
@@ -18,11 +20,13 @@ import { UsersModule } from '../users/users.module';
       UserEntity,
       UserProfileEntity,
       ServiceCategoryEntity,
+      JobEntity,
     ]),
     ValidateModule,
     FilesModule,
     MailModule,
     AuthModule,
+    OffersModule,
     UsersModule,
   ],
   controllers: [WorkersController],

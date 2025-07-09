@@ -23,19 +23,28 @@ export class JobMatchEntity extends EntityRelationalHelper {
   @ManyToOne(() => JobEntity, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'job_id' })
+  // Usamos nombre camelCase para coincidir con la columna existente en la DB ("jobId")
+  @JoinColumn({ name: 'jobId' })
   job: JobEntity;
 
   @ManyToOne(() => UserEntity, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'worker_id' })
+  // Nombre camelCase para coincidir con la columna "workerId" en la tabla
+  @JoinColumn({ name: 'workerId' })
   worker: UserEntity;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2 })
+  // La columna real en la tabla es "compatibilityScore"
+  @Column({
+    name: 'compatibilityScore',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+  })
   score: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  // La columna real es "distanceKm"
+  @Column({ name: 'distanceKm', type: 'decimal', precision: 10, scale: 2 })
   distance: number;
 
   @Column({ type: 'boolean', default: false })

@@ -20,6 +20,41 @@ export class OfferDto {
   })
   jobDescription: string;
 
+  // NUEVOS CAMPOS PARA DIRECCIÓN Y COORDENADAS DEL TRABAJO
+  @ApiProperty({
+    example: 'Av. Ejemplo 123, Arequipa',
+    description: 'Dirección del trabajo',
+  })
+  jobAddress: string;
+
+  @ApiProperty({
+    example: -16.409,
+    description: 'Latitud del trabajo',
+    required: false,
+  })
+  jobLatitude?: number;
+
+  @ApiProperty({
+    example: -71.5369,
+    description: 'Longitud del trabajo',
+    required: false,
+  })
+  jobLongitude?: number;
+  // ... existing code ...
+
+  @ApiProperty({
+    example: 'Plomería',
+    description: 'Nombre de la categoría de servicio',
+  })
+  serviceCategoryName: string;
+
+  @ApiProperty({
+    example: 'Alta',
+    description: 'Nivel de urgencia',
+    required: false,
+  })
+  urgency?: string;
+
   @ApiProperty({
     example: 6,
     description: 'ID del worker que recibe la oferta',
